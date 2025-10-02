@@ -43,6 +43,31 @@ export default function Analytics() {
         completionRate: 85, // Mock data
         avgWaitTime: 15 // Mock data
       });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const generateInsights = async () => {
+    setLoading(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+
+      // Fetch data for insights
+      const { data: appointments } = await (supabase as any)
+        .from("appointments")
+        .select("*");
+
+      const { data: patients } = await (supabase as any)
+        .from("patients")
+        .select("id");
 
       // Get AI insights
       const { data, error } = await supabase.functions.invoke("analytics-insights", {
@@ -52,6 +77,10 @@ export default function Analytics() {
       if (error) throw error;
 
       setInsights(data.insights);
+      toast({
+        title: "Success",
+        description: "AI insights generated successfully",
+      });
     } catch (error: any) {
       toast({
         title: "Error",
@@ -140,13 +169,34 @@ export default function Analytics() {
                 <p className="text-sm text-muted-foreground">Analyzing data...</p>
               </div>
             ) : insights ? (
-              <div className="prose prose-sm max-w-none whitespace-pre-wrap">
-                {insights}
+              <div className="space-y-4">
+                <div className="prose prose-sm max-w-none whitespace-pre-wrap">
+                  {insights}
+                </div>
+                <Button 
+                  onClick={generateInsights}
+                  variant="outline"
+                  size="sm"
+                  className="w-full"
+                >
+                  <Brain className="w-4 h-4 mr-2" />
+                  Regenerate Insights
+                </Button>
               </div>
             ) : (
-              <p className="text-sm text-muted-foreground text-center py-4">
-                No insights available yet. More data needed for predictions.
-              </p>
+              <div className="text-center py-8">
+                <Brain className="w-12 h-12 mx-auto mb-4 text-muted-foreground/50" />
+                <p className="text-sm text-muted-foreground mb-4">
+                  Click the button below to generate AI-powered insights
+                </p>
+                <Button 
+                  onClick={generateInsights}
+                  className="gap-2"
+                >
+                  <Brain className="w-4 h-4" />
+                  Generate AI Insights
+                </Button>
+              </div>
             )}
           </CardContent>
         </Card>
