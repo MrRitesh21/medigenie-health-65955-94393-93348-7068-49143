@@ -160,13 +160,28 @@ export default function DoctorDashboard() {
             <CardDescription>Get verified to receive appointments</CardDescription>
           </CardHeader>
           <CardContent className="space-y-2">
-            <Button variant="outline" className="w-full justify-start" size="sm">
+            <Button 
+              variant="outline" 
+              className="w-full justify-start" 
+              size="sm"
+              onClick={() => navigate("/profile")}
+            >
               Add Specialization
             </Button>
-            <Button variant="outline" className="w-full justify-start" size="sm">
+            <Button 
+              variant="outline" 
+              className="w-full justify-start" 
+              size="sm"
+              onClick={() => navigate("/profile")}
+            >
               Setup Clinic Details
             </Button>
-            <Button variant="outline" className="w-full justify-start" size="sm">
+            <Button 
+              variant="outline" 
+              className="w-full justify-start" 
+              size="sm"
+              onClick={() => navigate("/profile")}
+            >
               Set Consultation Fee
             </Button>
           </CardContent>
