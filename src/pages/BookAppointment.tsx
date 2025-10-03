@@ -30,20 +30,25 @@ export default function BookAppointment() {
       }
 
       // Get patient ID
-      const { data: patientData } = await (supabase as any)
+      const { data: patientData } = await supabase
         .from("patients")
         .select("id")
         .eq("user_id", session.user.id)
-        .single();
+        .maybeSingle();
 
       if (patientData) {
         setPatientId(patientData.id);
       }
 
       // Fetch verified doctors using the secure public view
-      const { data: doctorsData } = await (supabase as any)
+      const { data: doctorsData, error: doctorsError } = await supabase
         .from("public_doctors")
-        .select("id, specialization, consultation_fee");
+        .select("id, specialization, consultation_fee")
+        .eq("is_verified", true);
+
+      if (doctorsError) {
+        console.error("Error fetching doctors:", doctorsError);
+      }
 
       setDoctors(doctorsData || []);
     };
@@ -64,7 +69,17 @@ export default function BookAppointment() {
     setLoading(true);
 
     try {
-      const { error } = await (supabase as any).from("appointments").insert({
+      if (!patientId) {
+        toast({
+          title: "Error",
+          description: "Patient profile not found. Please complete your profile first.",
+          variant: "destructive",
+        });
+        setLoading(false);
+        return;
+      }
+
+      const { error } = await supabase.from("appointments").insert({
         patient_id: patientId,
         doctor_id: selectedDoctor,
         appointment_date: new Date(selectedDate).toISOString(),
@@ -73,7 +88,10 @@ export default function BookAppointment() {
         status: "scheduled",
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Appointment booking error:", error);
+        throw error;
+      }
 
       toast({
         title: "Appointment Booked!",
