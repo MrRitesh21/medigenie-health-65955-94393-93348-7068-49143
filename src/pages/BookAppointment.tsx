@@ -3,12 +3,12 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar, Video, Building2, ArrowLeft } from "lucide-react";
+import { Calendar, Video, Building2, ArrowLeft, GraduationCap, Briefcase } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
 
 export default function BookAppointment() {
   const navigate = useNavigate();
@@ -43,7 +43,7 @@ export default function BookAppointment() {
       // Fetch verified doctors using the secure public view
       const { data: doctorsData, error: doctorsError } = await supabase
         .from("public_doctors")
-        .select("id, specialization, consultation_fee")
+        .select("id, specialization, consultation_fee, qualification, experience_years, bio")
         .eq("is_verified", true);
 
       if (doctorsError) {
@@ -139,121 +139,185 @@ export default function BookAppointment() {
           </TabsList>
 
           <TabsContent value="in-clinic" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Building2 className="w-5 h-5 text-primary" />
-                  In-Clinic Visit
-                </CardTitle>
-                <CardDescription>Visit the doctor's clinic for consultation</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <Label htmlFor="doctor">Select Doctor</Label>
-                  <Select value={selectedDoctor} onValueChange={setSelectedDoctor}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Choose a doctor" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {doctors.map((doctor) => (
-                        <SelectItem key={doctor.id} value={doctor.id}>
-                          {doctor.specialization} - ₹{doctor.consultation_fee}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+            <div className="space-y-4">
+              <Label>Select Doctor</Label>
+              {doctors.length === 0 ? (
+                <Card>
+                  <CardContent className="pt-6 text-center text-muted-foreground">
+                    No verified doctors available at the moment
+                  </CardContent>
+                </Card>
+              ) : (
+                doctors.map((doctor) => (
+                  <Card 
+                    key={doctor.id} 
+                    className={`cursor-pointer transition-all ${
+                      selectedDoctor === doctor.id 
+                        ? "ring-2 ring-primary border-primary" 
+                        : "hover:border-primary/50"
+                    }`}
+                    onClick={() => setSelectedDoctor(doctor.id)}
+                  >
+                    <CardHeader>
+                      <div className="flex items-start justify-between">
+                        <div className="space-y-1">
+                          <CardTitle className="text-lg">{doctor.specialization}</CardTitle>
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <GraduationCap className="w-4 h-4" />
+                            {doctor.qualification}
+                          </div>
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <Briefcase className="w-4 h-4" />
+                            {doctor.experience_years} years experience
+                          </div>
+                        </div>
+                        <Badge variant="secondary" className="text-lg font-semibold">
+                          ₹{doctor.consultation_fee}
+                        </Badge>
+                      </div>
+                    </CardHeader>
+                    {doctor.bio && (
+                      <CardContent>
+                        <p className="text-sm text-muted-foreground">{doctor.bio}</p>
+                      </CardContent>
+                    )}
+                  </Card>
+                ))
+              )}
 
-                <div>
-                  <Label htmlFor="date">Appointment Date & Time</Label>
-                  <input
-                    type="datetime-local"
-                    id="date"
-                    className="w-full rounded-md border border-input bg-background px-3 py-2"
-                    value={selectedDate}
-                    onChange={(e) => setSelectedDate(e.target.value)}
-                  />
-                </div>
+              {selectedDoctor && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Building2 className="w-5 h-5 text-primary" />
+                      Complete Booking
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div>
+                      <Label htmlFor="date">Appointment Date & Time</Label>
+                      <input
+                        type="datetime-local"
+                        id="date"
+                        className="w-full rounded-md border border-input bg-background px-3 py-2"
+                        value={selectedDate}
+                        onChange={(e) => setSelectedDate(e.target.value)}
+                      />
+                    </div>
 
-                <div>
-                  <Label htmlFor="symptoms">Symptoms</Label>
-                  <Textarea
-                    id="symptoms"
-                    placeholder="Describe your symptoms..."
-                    value={symptoms}
-                    onChange={(e) => setSymptoms(e.target.value)}
-                    rows={4}
-                  />
-                </div>
+                    <div>
+                      <Label htmlFor="symptoms">Symptoms</Label>
+                      <Textarea
+                        id="symptoms"
+                        placeholder="Describe your symptoms..."
+                        value={symptoms}
+                        onChange={(e) => setSymptoms(e.target.value)}
+                        rows={4}
+                      />
+                    </div>
 
-                <Button
-                  onClick={handleBookAppointment}
-                  disabled={loading}
-                  className="w-full"
-                >
-                  {loading ? "Booking..." : "Book Appointment"}
-                </Button>
-              </CardContent>
-            </Card>
+                    <Button
+                      onClick={handleBookAppointment}
+                      disabled={loading}
+                      className="w-full"
+                    >
+                      {loading ? "Booking..." : "Book Appointment"}
+                    </Button>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
           </TabsContent>
 
           <TabsContent value="teleconsult" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Video className="w-5 h-5 text-primary" />
-                  Online Consultation
-                </CardTitle>
-                <CardDescription>Connect with doctor via video call</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <Label htmlFor="doctor-tele">Select Doctor</Label>
-                  <Select value={selectedDoctor} onValueChange={setSelectedDoctor}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Choose a doctor" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {doctors.map((doctor) => (
-                        <SelectItem key={doctor.id} value={doctor.id}>
-                          {doctor.specialization} - ₹{doctor.consultation_fee}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+            <div className="space-y-4">
+              <Label>Select Doctor</Label>
+              {doctors.length === 0 ? (
+                <Card>
+                  <CardContent className="pt-6 text-center text-muted-foreground">
+                    No verified doctors available at the moment
+                  </CardContent>
+                </Card>
+              ) : (
+                doctors.map((doctor) => (
+                  <Card 
+                    key={doctor.id} 
+                    className={`cursor-pointer transition-all ${
+                      selectedDoctor === doctor.id 
+                        ? "ring-2 ring-primary border-primary" 
+                        : "hover:border-primary/50"
+                    }`}
+                    onClick={() => setSelectedDoctor(doctor.id)}
+                  >
+                    <CardHeader>
+                      <div className="flex items-start justify-between">
+                        <div className="space-y-1">
+                          <CardTitle className="text-lg">{doctor.specialization}</CardTitle>
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <GraduationCap className="w-4 h-4" />
+                            {doctor.qualification}
+                          </div>
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <Briefcase className="w-4 h-4" />
+                            {doctor.experience_years} years experience
+                          </div>
+                        </div>
+                        <Badge variant="secondary" className="text-lg font-semibold">
+                          ₹{doctor.consultation_fee}
+                        </Badge>
+                      </div>
+                    </CardHeader>
+                    {doctor.bio && (
+                      <CardContent>
+                        <p className="text-sm text-muted-foreground">{doctor.bio}</p>
+                      </CardContent>
+                    )}
+                  </Card>
+                ))
+              )}
 
-                <div>
-                  <Label htmlFor="date-tele">Appointment Date & Time</Label>
-                  <input
-                    type="datetime-local"
-                    id="date-tele"
-                    className="w-full rounded-md border border-input bg-background px-3 py-2"
-                    value={selectedDate}
-                    onChange={(e) => setSelectedDate(e.target.value)}
-                  />
-                </div>
+              {selectedDoctor && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Video className="w-5 h-5 text-primary" />
+                      Complete Booking
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div>
+                      <Label htmlFor="date-tele">Appointment Date & Time</Label>
+                      <input
+                        type="datetime-local"
+                        id="date-tele"
+                        className="w-full rounded-md border border-input bg-background px-3 py-2"
+                        value={selectedDate}
+                        onChange={(e) => setSelectedDate(e.target.value)}
+                      />
+                    </div>
 
-                <div>
-                  <Label htmlFor="symptoms-tele">Symptoms</Label>
-                  <Textarea
-                    id="symptoms-tele"
-                    placeholder="Describe your symptoms..."
-                    value={symptoms}
-                    onChange={(e) => setSymptoms(e.target.value)}
-                    rows={4}
-                  />
-                </div>
+                    <div>
+                      <Label htmlFor="symptoms-tele">Symptoms</Label>
+                      <Textarea
+                        id="symptoms-tele"
+                        placeholder="Describe your symptoms..."
+                        value={symptoms}
+                        onChange={(e) => setSymptoms(e.target.value)}
+                        rows={4}
+                      />
+                    </div>
 
-                <Button
-                  onClick={handleBookAppointment}
-                  disabled={loading}
-                  className="w-full"
-                >
-                  {loading ? "Booking..." : "Book Teleconsultation"}
-                </Button>
-              </CardContent>
-            </Card>
+                    <Button
+                      onClick={handleBookAppointment}
+                      disabled={loading}
+                      className="w-full"
+                    >
+                      {loading ? "Booking..." : "Book Teleconsultation"}
+                    </Button>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
           </TabsContent>
         </Tabs>
       </div>
