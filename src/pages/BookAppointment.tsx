@@ -40,10 +40,21 @@ export default function BookAppointment() {
         setPatientId(patientData.id);
       }
 
-      // Fetch verified doctors using the secure public view
+      // Fetch verified doctors with profile information
       const { data: doctorsData, error: doctorsError } = await supabase
-        .from("public_doctors")
-        .select("id, specialization, consultation_fee, qualification, experience_years, bio")
+        .from("doctors")
+        .select(`
+          id, 
+          specialization, 
+          consultation_fee, 
+          qualification, 
+          experience_years, 
+          bio,
+          clinic_name,
+          clinic_address,
+          license_number,
+          profiles:user_id (full_name, phone)
+        `)
         .eq("is_verified", true);
 
       if (doctorsError) {
@@ -160,8 +171,11 @@ export default function BookAppointment() {
                   >
                     <CardHeader>
                       <div className="flex items-start justify-between">
-                        <div className="space-y-1">
-                          <CardTitle className="text-lg">{doctor.specialization}</CardTitle>
+                        <div className="space-y-2 flex-1">
+                          {doctor.profiles?.full_name && (
+                            <CardTitle className="text-xl">Dr. {doctor.profiles.full_name}</CardTitle>
+                          )}
+                          <div className="text-base font-medium text-primary">{doctor.specialization}</div>
                           <div className="flex items-center gap-2 text-sm text-muted-foreground">
                             <GraduationCap className="w-4 h-4" />
                             {doctor.qualification}
@@ -170,17 +184,26 @@ export default function BookAppointment() {
                             <Briefcase className="w-4 h-4" />
                             {doctor.experience_years} years experience
                           </div>
+                          {doctor.clinic_name && (
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <Building2 className="w-4 h-4" />
+                              {doctor.clinic_name}
+                            </div>
+                          )}
                         </div>
                         <Badge variant="secondary" className="text-lg font-semibold">
                           ₹{doctor.consultation_fee}
                         </Badge>
                       </div>
                     </CardHeader>
-                    {doctor.bio && (
-                      <CardContent>
+                    <CardContent className="space-y-2">
+                      {doctor.clinic_address && (
+                        <p className="text-sm text-muted-foreground">📍 {doctor.clinic_address}</p>
+                      )}
+                      {doctor.bio && (
                         <p className="text-sm text-muted-foreground">{doctor.bio}</p>
-                      </CardContent>
-                    )}
+                      )}
+                    </CardContent>
                   </Card>
                 ))
               )}
@@ -251,8 +274,11 @@ export default function BookAppointment() {
                   >
                     <CardHeader>
                       <div className="flex items-start justify-between">
-                        <div className="space-y-1">
-                          <CardTitle className="text-lg">{doctor.specialization}</CardTitle>
+                        <div className="space-y-2 flex-1">
+                          {doctor.profiles?.full_name && (
+                            <CardTitle className="text-xl">Dr. {doctor.profiles.full_name}</CardTitle>
+                          )}
+                          <div className="text-base font-medium text-primary">{doctor.specialization}</div>
                           <div className="flex items-center gap-2 text-sm text-muted-foreground">
                             <GraduationCap className="w-4 h-4" />
                             {doctor.qualification}
@@ -261,17 +287,26 @@ export default function BookAppointment() {
                             <Briefcase className="w-4 h-4" />
                             {doctor.experience_years} years experience
                           </div>
+                          {doctor.clinic_name && (
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <Building2 className="w-4 h-4" />
+                              {doctor.clinic_name}
+                            </div>
+                          )}
                         </div>
                         <Badge variant="secondary" className="text-lg font-semibold">
                           ₹{doctor.consultation_fee}
                         </Badge>
                       </div>
                     </CardHeader>
-                    {doctor.bio && (
-                      <CardContent>
+                    <CardContent className="space-y-2">
+                      {doctor.clinic_address && (
+                        <p className="text-sm text-muted-foreground">📍 {doctor.clinic_address}</p>
+                      )}
+                      {doctor.bio && (
                         <p className="text-sm text-muted-foreground">{doctor.bio}</p>
-                      </CardContent>
-                    )}
+                      )}
+                    </CardContent>
                   </Card>
                 ))
               )}
