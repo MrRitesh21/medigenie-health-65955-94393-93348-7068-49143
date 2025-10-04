@@ -33,6 +33,19 @@ export default function Dashboard() {
         .eq("id", session.user.id)
         .single();
 
+      // Check if user is admin first
+      const { data: adminRole } = await (supabase as any)
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", session.user.id)
+        .eq("role", "admin")
+        .single();
+
+      if (adminRole) {
+        navigate('/admin-dashboard');
+        return;
+      }
+
       setProfile(profileData);
       
       // Redirect to role-specific dashboard

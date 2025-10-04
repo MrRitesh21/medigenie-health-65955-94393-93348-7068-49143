@@ -1,9 +1,9 @@
-import { Home, Calendar, FileText, User, Activity, Pill, Package, TrendingUp, Brain } from "lucide-react";
+import { Home, Calendar, FileText, User, Activity, Pill, Package, TrendingUp, Brain, Shield } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
 interface MobileBottomNavProps {
-  role?: 'doctor' | 'patient' | 'pharmacy';
+  role?: 'doctor' | 'patient' | 'pharmacy' | 'admin';
 }
 
 const patientNavItems = [
@@ -30,10 +30,18 @@ const pharmacyNavItems = [
   { icon: User, label: "Profile", path: "/profile" },
 ];
 
+const adminNavItems = [
+  { icon: Home, label: "Home", path: "/admin-dashboard" },
+  { icon: Shield, label: "Doctors", path: "/admin-dashboard" },
+  { icon: TrendingUp, label: "Analytics", path: "/analytics" },
+  { icon: User, label: "Profile", path: "/profile" },
+];
+
 export const MobileBottomNav = ({ role = 'patient' }: MobileBottomNavProps) => {
   const location = useLocation();
 
   const navItems = 
+    role === 'admin' ? adminNavItems :
     role === 'doctor' ? doctorNavItems :
     role === 'pharmacy' ? pharmacyNavItems :
     patientNavItems;

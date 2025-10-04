@@ -9,6 +9,7 @@ import Dashboard from "./pages/Dashboard";
 import DoctorDashboard from "./pages/DoctorDashboard";
 import PatientDashboard from "./pages/PatientDashboard";
 import PharmacyDashboard from "./pages/PharmacyDashboard";
+import AdminDashboard from "./pages/AdminDashboard";
 import NotFound from "./pages/NotFound";
 import BookAppointment from "./pages/BookAppointment";
 import Prescriptions from "./pages/Prescriptions";
@@ -39,6 +40,7 @@ const App = () => (
           <Route path="/doctor-dashboard" element={<DoctorDashboard />} />
           <Route path="/patient-dashboard" element={<PatientDashboard />} />
           <Route path="/pharmacy-dashboard" element={<PharmacyDashboard />} />
+          <Route path="/admin-dashboard" element={<AdminDashboard />} />
           <Route path="/book-appointment" element={<BookAppointment />} />
           <Route path="/prescriptions" element={<Prescriptions />} />
           <Route path="/symptom-checker" element={<SymptomChecker />} />
