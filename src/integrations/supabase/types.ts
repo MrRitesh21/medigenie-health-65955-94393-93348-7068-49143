@@ -78,8 +78,71 @@ export type Database = {
           },
         ]
       }
+      doctor_ratings: {
+        Row: {
+          appointment_id: string
+          created_at: string
+          doctor_id: string
+          id: string
+          patient_id: string
+          rating: number
+          review: string | null
+          updated_at: string
+        }
+        Insert: {
+          appointment_id: string
+          created_at?: string
+          doctor_id: string
+          id?: string
+          patient_id: string
+          rating: number
+          review?: string | null
+          updated_at?: string
+        }
+        Update: {
+          appointment_id?: string
+          created_at?: string
+          doctor_id?: string
+          id?: string
+          patient_id?: string
+          rating?: number
+          review?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "doctor_ratings_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "doctor_ratings_doctor_id_fkey"
+            columns: ["doctor_id"]
+            isOneToOne: false
+            referencedRelation: "doctors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "doctor_ratings_doctor_id_fkey"
+            columns: ["doctor_id"]
+            isOneToOne: false
+            referencedRelation: "public_doctors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "doctor_ratings_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       doctors: {
         Row: {
+          availability_schedule: Json | null
           bio: string | null
           clinic_address: string
           clinic_name: string
@@ -88,13 +151,16 @@ export type Database = {
           experience_years: number
           id: string
           is_verified: boolean | null
+          latitude: number | null
           license_number: string
+          longitude: number | null
           qualification: string
           specialization: string
           updated_at: string
           user_id: string
         }
         Insert: {
+          availability_schedule?: Json | null
           bio?: string | null
           clinic_address: string
           clinic_name: string
@@ -103,13 +169,16 @@ export type Database = {
           experience_years?: number
           id?: string
           is_verified?: boolean | null
+          latitude?: number | null
           license_number: string
+          longitude?: number | null
           qualification: string
           specialization: string
           updated_at?: string
           user_id: string
         }
         Update: {
+          availability_schedule?: Json | null
           bio?: string | null
           clinic_address?: string
           clinic_name?: string
@@ -118,7 +187,9 @@ export type Database = {
           experience_years?: number
           id?: string
           is_verified?: boolean | null
+          latitude?: number | null
           license_number?: string
+          longitude?: number | null
           qualification?: string
           specialization?: string
           updated_at?: string
@@ -144,6 +215,8 @@ export type Database = {
           emergency_contact: string | null
           gender: string | null
           id: string
+          latitude: number | null
+          longitude: number | null
           medical_conditions: string | null
           updated_at: string
           user_id: string
@@ -157,6 +230,8 @@ export type Database = {
           emergency_contact?: string | null
           gender?: string | null
           id?: string
+          latitude?: number | null
+          longitude?: number | null
           medical_conditions?: string | null
           updated_at?: string
           user_id: string
@@ -170,6 +245,8 @@ export type Database = {
           emergency_contact?: string | null
           gender?: string | null
           id?: string
+          latitude?: number | null
+          longitude?: number | null
           medical_conditions?: string | null
           updated_at?: string
           user_id?: string
@@ -311,6 +388,29 @@ export type Database = {
       }
     }
     Views: {
+      doctor_ratings_summary: {
+        Row: {
+          average_rating: number | null
+          doctor_id: string | null
+          total_ratings: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "doctor_ratings_doctor_id_fkey"
+            columns: ["doctor_id"]
+            isOneToOne: false
+            referencedRelation: "doctors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "doctor_ratings_doctor_id_fkey"
+            columns: ["doctor_id"]
+            isOneToOne: false
+            referencedRelation: "public_doctors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       public_doctors: {
         Row: {
           bio: string | null

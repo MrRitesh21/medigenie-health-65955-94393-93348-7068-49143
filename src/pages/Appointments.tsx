@@ -3,18 +3,21 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar, Clock, MapPin, Plus, User } from "lucide-react";
+import { Calendar, Clock, MapPin, Plus, User, Star } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { MobileHeader } from "@/components/MobileHeader";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
 import { Badge } from "@/components/ui/badge";
 import { useUserRole } from "@/hooks/useUserRole";
+import DoctorRating from "@/components/DoctorRating";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 export default function Appointments() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [appointments, setAppointments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [patientId, setPatientId] = useState<string>("");
   const { role } = useUserRole();
 
   useEffect(() => {
@@ -45,6 +48,8 @@ export default function Appointments() {
         setLoading(false);
         return;
       }
+
+      setPatientId(patientData.id);
 
       // Fetch appointments
       const { data: appointmentsData, error } = await supabase
@@ -178,14 +183,41 @@ export default function Appointments() {
                       {appointment.status}
                     </Badge>
                   </div>
-                </CardHeader>
-                {appointment.symptoms && (
-                  <CardContent>
+                 </CardHeader>
+                <CardContent className="space-y-3">
+                  {appointment.symptoms && (
                     <p className="text-sm text-muted-foreground">
                       <strong>Symptoms:</strong> {appointment.symptoms}
                     </p>
-                  </CardContent>
-                )}
+                  )}
+                  
+                  {appointment.status === "completed" && (
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button variant="outline" className="w-full">
+                          <Star className="w-4 h-4 mr-2" />
+                          Rate Doctor
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="max-w-lg">
+                        <DialogHeader>
+                          <DialogTitle>Rate Your Experience</DialogTitle>
+                        </DialogHeader>
+                        <DoctorRating
+                          doctorId={appointment.doctor_id}
+                          appointmentId={appointment.id}
+                          patientId={patientId}
+                          onRatingSubmitted={() => {
+                            toast({
+                              title: "Thank you!",
+                              description: "Your rating has been submitted",
+                            });
+                          }}
+                        />
+                      </DialogContent>
+                    </Dialog>
+                  )}
+                </CardContent>
               </Card>
             ))}
           </div>
