@@ -112,20 +112,20 @@ export default function Appointments() {
     <div className="min-h-screen bg-background pb-20">
       <MobileHeader title="Appointments" />
       
-      <div className="container mx-auto p-4 max-w-4xl">
-        <div className="flex items-center justify-between mb-6">
+      <div className="container mx-auto px-4 py-4 sm:px-6 lg:px-8 max-w-7xl">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
           <div>
-            <h1 className="text-3xl font-bold">My Appointments</h1>
-            <p className="text-muted-foreground">View and manage your appointments</p>
+            <h1 className="text-2xl sm:text-3xl font-bold">My Appointments</h1>
+            <p className="text-sm sm:text-base text-muted-foreground mt-1">View and manage your appointments</p>
           </div>
-          <Button onClick={() => navigate("/book-appointment")}>
+          <Button onClick={() => navigate("/book-appointment")} className="w-full sm:w-auto">
             <Plus className="mr-2 h-4 w-4" />
-            Book New
+            <span className="sm:inline">Book New</span>
           </Button>
         </div>
 
         {loading ? (
-          <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {[1, 2, 3].map((i) => (
               <Card key={i} className="animate-pulse">
                 <CardHeader>
@@ -150,43 +150,43 @@ export default function Appointments() {
             </CardContent>
           </Card>
         ) : (
-          <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
             {appointments.map((appointment) => (
-              <Card key={appointment.id} className="hover:shadow-md transition-shadow">
-                <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
+              <Card key={appointment.id} className="hover:shadow-md transition-shadow flex flex-col">
+                <CardHeader className="pb-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-2">
-                        <User className="h-4 w-4 text-muted-foreground" />
-                        <CardTitle className="text-lg">
+                        <User className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                        <CardTitle className="text-base sm:text-lg truncate">
                           {appointment.doctors?.specialization || "Specialist"}
                         </CardTitle>
                       </div>
-                      <CardDescription className="space-y-2">
+                      <CardDescription className="space-y-1.5">
                         <div className="flex items-center gap-2">
-                          <Calendar className="h-4 w-4" />
-                          <span>{formatDate(appointment.appointment_date)}</span>
+                          <Calendar className="h-3.5 w-3.5 flex-shrink-0" />
+                          <span className="text-xs sm:text-sm">{formatDate(appointment.appointment_date)}</span>
                         </div>
                         <div className="flex items-center gap-2">
-                          <Clock className="h-4 w-4" />
-                          <span>{formatTime(appointment.appointment_date)} ({appointment.duration_minutes} mins)</span>
+                          <Clock className="h-3.5 w-3.5 flex-shrink-0" />
+                          <span className="text-xs sm:text-sm">{formatTime(appointment.appointment_date)} ({appointment.duration_minutes} mins)</span>
                         </div>
                         {appointment.doctors?.clinic_name && (
                           <div className="flex items-center gap-2">
-                            <MapPin className="h-4 w-4" />
-                            <span>{appointment.doctors.clinic_name}</span>
+                            <MapPin className="h-3.5 w-3.5 flex-shrink-0" />
+                            <span className="text-xs sm:text-sm truncate">{appointment.doctors.clinic_name}</span>
                           </div>
                         )}
                       </CardDescription>
                     </div>
-                    <Badge className={getStatusColor(appointment.status)}>
+                    <Badge className={`${getStatusColor(appointment.status)} flex-shrink-0 text-xs`}>
                       {appointment.status}
                     </Badge>
                   </div>
                  </CardHeader>
-                <CardContent className="space-y-3">
+                <CardContent className="space-y-3 pt-0 flex-1">
                   {appointment.symptoms && (
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-xs sm:text-sm text-muted-foreground line-clamp-2">
                       <strong>Symptoms:</strong> {appointment.symptoms}
                     </p>
                   )}
@@ -194,14 +194,14 @@ export default function Appointments() {
                   {appointment.status === "completed" && (
                     <Dialog>
                       <DialogTrigger asChild>
-                        <Button variant="outline" className="w-full">
-                          <Star className="w-4 h-4 mr-2" />
+                        <Button variant="outline" className="w-full text-xs sm:text-sm">
+                          <Star className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-2" />
                           Rate Doctor
                         </Button>
                       </DialogTrigger>
-                      <DialogContent className="max-w-lg">
+                      <DialogContent className="max-w-[95vw] sm:max-w-lg mx-4">
                         <DialogHeader>
-                          <DialogTitle>Rate Your Experience</DialogTitle>
+                          <DialogTitle className="text-lg sm:text-xl">Rate Your Experience</DialogTitle>
                         </DialogHeader>
                         <DoctorRating
                           doctorId={appointment.doctor_id}
