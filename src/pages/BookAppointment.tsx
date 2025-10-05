@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import DoctorReviews from "@/components/DoctorReviews";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export default function BookAppointment() {
   const navigate = useNavigate();
@@ -82,6 +83,7 @@ export default function BookAppointment() {
           latitude,
           longitude,
           availability_schedule,
+          photo_url,
           profiles:user_id (full_name, phone)
         `)
         .eq("is_verified", true);
@@ -234,7 +236,13 @@ export default function BookAppointment() {
       }}
     >
       <CardHeader>
-        <div className="flex items-start justify-between">
+        <div className="flex items-start gap-4">
+          <Avatar className="w-16 h-16">
+            <AvatarImage src={doctor.photo_url} alt={doctor.profiles?.full_name} />
+            <AvatarFallback className="text-lg">
+              {doctor.profiles?.full_name?.charAt(0) || "D"}
+            </AvatarFallback>
+          </Avatar>
           <div className="space-y-2 flex-1">
             {doctor.profiles?.full_name && (
               <CardTitle className="text-xl">Dr. {doctor.profiles.full_name}</CardTitle>
@@ -317,7 +325,13 @@ export default function BookAppointment() {
 
           <Card className="mb-6">
             <CardHeader>
-              <div className="flex items-start justify-between">
+              <div className="flex items-start gap-4">
+                <Avatar className="w-20 h-20">
+                  <AvatarImage src={doctor.photo_url} alt={doctor.profiles?.full_name} />
+                  <AvatarFallback className="text-2xl">
+                    {doctor.profiles?.full_name?.charAt(0) || "D"}
+                  </AvatarFallback>
+                </Avatar>
                 <div className="space-y-3 flex-1">
                   <CardTitle className="text-2xl">Dr. {doctor.profiles?.full_name}</CardTitle>
                   <div className="text-lg font-medium text-primary">{doctor.specialization}</div>

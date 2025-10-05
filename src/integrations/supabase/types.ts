@@ -154,6 +154,7 @@ export type Database = {
           latitude: number | null
           license_number: string
           longitude: number | null
+          photo_url: string | null
           qualification: string
           specialization: string
           updated_at: string
@@ -172,6 +173,7 @@ export type Database = {
           latitude?: number | null
           license_number: string
           longitude?: number | null
+          photo_url?: string | null
           qualification: string
           specialization: string
           updated_at?: string
@@ -190,6 +192,7 @@ export type Database = {
           latitude?: number | null
           license_number?: string
           longitude?: number | null
+          photo_url?: string | null
           qualification?: string
           specialization?: string
           updated_at?: string
