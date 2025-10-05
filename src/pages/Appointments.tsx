@@ -3,14 +3,16 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar, Clock, MapPin, Plus, User, Star } from "lucide-react";
+import { Calendar, Clock, MapPin, Plus, User, Star, Video, Building2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { MobileHeader } from "@/components/MobileHeader";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
 import { Badge } from "@/components/ui/badge";
 import { useUserRole } from "@/hooks/useUserRole";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import DoctorRating from "@/components/DoctorRating";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Separator } from "@/components/ui/separator";
 
 export default function Appointments() {
   const navigate = useNavigate();
@@ -59,7 +61,10 @@ export default function Appointments() {
           doctors (
             specialization,
             clinic_name,
-            clinic_address
+            clinic_address,
+            consultation_fee,
+            photo_url,
+            profiles:user_id (full_name, phone)
           )
         `)
         .eq("patient_id", patientData.id)
@@ -154,35 +159,66 @@ export default function Appointments() {
             {appointments.map((appointment) => (
               <Card key={appointment.id} className="hover:shadow-md transition-shadow flex flex-col">
                 <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between gap-2">
+                  <div className="flex items-start gap-3">
+                    <Avatar className="w-12 h-12 sm:w-14 sm:h-14 flex-shrink-0">
+                      <AvatarImage src={appointment.doctors?.photo_url} alt={appointment.doctors?.profiles?.full_name} />
+                      <AvatarFallback className="text-base sm:text-lg">
+                        {appointment.doctors?.profiles?.full_name?.charAt(0) || "D"}
+                      </AvatarFallback>
+                    </Avatar>
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-2">
-                        <User className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                        <CardTitle className="text-base sm:text-lg truncate">
-                          {appointment.doctors?.specialization || "Specialist"}
-                        </CardTitle>
+                      <div className="flex items-start justify-between gap-2 mb-2">
+                        <div className="flex-1 min-w-0">
+                          <CardTitle className="text-base sm:text-lg truncate">
+                            Dr. {appointment.doctors?.profiles?.full_name || "Doctor"}
+                          </CardTitle>
+                          <p className="text-xs sm:text-sm text-muted-foreground">
+                            {appointment.doctors?.specialization}
+                          </p>
+                        </div>
+                        <Badge className={`${getStatusColor(appointment.status)} flex-shrink-0 text-xs`}>
+                          {appointment.status}
+                        </Badge>
                       </div>
-                      <CardDescription className="space-y-1.5">
-                        <div className="flex items-center gap-2">
-                          <Calendar className="h-3.5 w-3.5 flex-shrink-0" />
-                          <span className="text-xs sm:text-sm">{formatDate(appointment.appointment_date)}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Clock className="h-3.5 w-3.5 flex-shrink-0" />
-                          <span className="text-xs sm:text-sm">{formatTime(appointment.appointment_date)} ({appointment.duration_minutes} mins)</span>
-                        </div>
-                        {appointment.doctors?.clinic_name && (
-                          <div className="flex items-center gap-2">
-                            <MapPin className="h-3.5 w-3.5 flex-shrink-0" />
-                            <span className="text-xs sm:text-sm truncate">{appointment.doctors.clinic_name}</span>
-                          </div>
-                        )}
-                      </CardDescription>
                     </div>
-                    <Badge className={`${getStatusColor(appointment.status)} flex-shrink-0 text-xs`}>
-                      {appointment.status}
-                    </Badge>
                   </div>
+                  
+                  <Separator className="my-3" />
+                  
+                  <CardDescription className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <Calendar className="h-3.5 w-3.5 flex-shrink-0 text-primary" />
+                      <span className="text-xs sm:text-sm font-medium">{formatDate(appointment.appointment_date)}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Clock className="h-3.5 w-3.5 flex-shrink-0 text-primary" />
+                      <span className="text-xs sm:text-sm">{formatTime(appointment.appointment_date)} • {appointment.duration_minutes} mins</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {appointment.type === "teleconsult" ? (
+                        <>
+                          <Video className="h-3.5 w-3.5 flex-shrink-0 text-primary" />
+                          <span className="text-xs sm:text-sm">Teleconsultation</span>
+                        </>
+                      ) : (
+                        <>
+                          <Building2 className="h-3.5 w-3.5 flex-shrink-0 text-primary" />
+                          <span className="text-xs sm:text-sm">In-Clinic Visit</span>
+                        </>
+                      )}
+                    </div>
+                    {appointment.doctors?.clinic_name && appointment.type === "in-clinic" && (
+                      <div className="flex items-start gap-2">
+                        <MapPin className="h-3.5 w-3.5 flex-shrink-0 text-primary mt-0.5" />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs sm:text-sm font-medium">{appointment.doctors.clinic_name}</p>
+                          {appointment.doctors?.clinic_address && (
+                            <p className="text-xs text-muted-foreground line-clamp-1">{appointment.doctors.clinic_address}</p>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </CardDescription>
                  </CardHeader>
                 <CardContent className="space-y-3 pt-0 flex-1">
                   {appointment.symptoms && (
