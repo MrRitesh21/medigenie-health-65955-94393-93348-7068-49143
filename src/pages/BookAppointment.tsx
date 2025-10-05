@@ -333,7 +333,7 @@ export default function BookAppointment() {
                   </AvatarFallback>
                 </Avatar>
                 <div className="space-y-3 flex-1">
-                  <CardTitle className="text-2xl">Dr. {doctor.profiles?.full_name}</CardTitle>
+                  <CardTitle className="text-2xl">Dr. {doctor.profiles?.full_name || "Doctor"}</CardTitle>
                   <div className="text-lg font-medium text-primary">{doctor.specialization}</div>
                   <div className="flex items-center gap-1">
                     {[...Array(5)].map((_, i) => (
