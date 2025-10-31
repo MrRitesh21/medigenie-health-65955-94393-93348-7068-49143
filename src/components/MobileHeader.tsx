@@ -11,6 +11,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import { ThemeSwitcher } from "./ThemeSwitcher";
 
 interface MobileHeaderProps {
   title: string;
@@ -40,10 +41,10 @@ export const MobileHeader = ({ title, profile }: MobileHeaderProps) => {
   };
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-lg border-b border-border pt-safe">
+    <header className="fixed top-0 left-0 right-0 z-50 glass backdrop-blur-xl border-b border-border pt-safe shadow-lg">
       <div className="flex items-center justify-between h-16 px-4">
         <div className="flex items-center gap-3">
-          <div className="p-2 rounded-lg bg-gradient-to-br from-primary to-secondary">
+          <div className="p-2 rounded-xl gradient-primary shadow-glow">
             <Activity className="w-5 h-5 text-primary-foreground" />
           </div>
           <div>
@@ -57,9 +58,10 @@ export const MobileHeader = ({ title, profile }: MobileHeaderProps) => {
         </div>
 
         <div className="flex items-center gap-2">
+          <ThemeSwitcher />
           <Button variant="ghost" size="icon" className="relative">
             <Bell className="w-5 h-5" />
-            <span className="absolute top-1 right-1 w-2 h-2 bg-destructive rounded-full" />
+            <span className="absolute top-1 right-1 w-2 h-2 bg-destructive rounded-full animate-pulse" />
           </Button>
 
           <Sheet>
@@ -74,30 +76,30 @@ export const MobileHeader = ({ title, profile }: MobileHeaderProps) => {
               </SheetHeader>
               <div className="py-6 space-y-6">
                 {/* Profile Section */}
-                <div className="flex items-center gap-3 p-4 rounded-lg bg-gradient-to-br from-primary/10 to-secondary/10 border border-primary/20">
-                  <Avatar className="w-12 h-12 border-2 border-primary">
-                    <AvatarFallback className="bg-gradient-to-br from-primary to-secondary text-white">
+                <div className="flex items-center gap-3 p-4 rounded-xl gradient-primary border-0 shadow-glow">
+                  <Avatar className="w-12 h-12 border-2 border-primary-foreground/20">
+                    <AvatarFallback className="gradient-secondary text-secondary-foreground font-bold">
                       {profile?.full_name ? getInitials(profile.full_name) : "U"}
                     </AvatarFallback>
                   </Avatar>
-                  <div>
+                  <div className="text-primary-foreground">
                     <div className="font-semibold">{profile?.full_name}</div>
-                    <div className="text-sm text-muted-foreground">{profile?.email}</div>
+                    <div className="text-sm text-primary-foreground/70">{profile?.email}</div>
                   </div>
                 </div>
 
                 {/* Menu Items */}
                 <div className="space-y-2">
-                  <Button variant="ghost" className="w-full justify-start" onClick={() => navigate("/profile")}>
+                  <Button variant="ghost" className="w-full justify-start hover:bg-primary/10" onClick={() => navigate("/profile")}>
                     Edit Profile
                   </Button>
-                  <Button variant="ghost" className="w-full justify-start">
+                  <Button variant="ghost" className="w-full justify-start hover:bg-primary/10">
                     Settings
                   </Button>
-                  <Button variant="ghost" className="w-full justify-start">
+                  <Button variant="ghost" className="w-full justify-start hover:bg-primary/10">
                     Help & Support
                   </Button>
-                  <Button variant="ghost" className="w-full justify-start text-destructive" onClick={handleSignOut}>
+                  <Button variant="ghost" className="w-full justify-start text-destructive hover:bg-destructive/10" onClick={handleSignOut}>
                     Sign Out
                   </Button>
                 </div>

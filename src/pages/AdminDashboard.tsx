@@ -229,20 +229,20 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-card pb-20">
+    <div className="min-h-screen bg-gradient-to-b from-background via-background to-card/50 pb-20">
       <MobileHeader title="Admin Dashboard" profile={profile} />
 
       <main className="pt-20 px-4 pb-4 max-w-7xl mx-auto">
         {/* Welcome Card */}
-        <Card className="bg-gradient-to-br from-primary/10 to-secondary/10 border-primary/20 mb-6">
+        <Card className="gradient-accent border-0 shadow-glow mb-6">
           <CardContent className="pt-6">
             <div className="flex items-center gap-3">
-              <div className="p-3 rounded-lg bg-gradient-to-br from-primary to-secondary">
-                <Shield className="w-6 h-6 text-white" />
+              <div className="p-3 rounded-xl gradient-secondary shadow-lg">
+                <Shield className="w-6 h-6 text-secondary-foreground" />
               </div>
-              <div>
+              <div className="text-accent-foreground">
                 <h2 className="text-2xl font-bold">Admin Panel</h2>
-                <p className="text-sm text-muted-foreground">Manage platform and users</p>
+                <p className="text-sm text-accent-foreground/80">Manage platform and users</p>
               </div>
             </div>
           </CardContent>
@@ -271,11 +271,11 @@ export default function AdminDashboard() {
           {/* Overview Tab */}
           <TabsContent value="overview" className="space-y-6">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <Card>
+              <Card className="hover:shadow-lg transition-smooth border-primary/20 bg-card/50 backdrop-blur">
                 <CardContent className="pt-6">
                   <div className="flex items-center justify-between mb-2">
-                    <div className="p-2 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600">
-                      <Shield className="w-5 h-5 text-white" />
+                    <div className="p-3 rounded-xl gradient-primary shadow-glow">
+                      <Shield className="w-5 h-5 text-primary-foreground" />
                     </div>
                   </div>
                   <div className="text-3xl font-bold mb-1">{stats.totalDoctors}</div>
@@ -283,11 +283,11 @@ export default function AdminDashboard() {
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card className="hover:shadow-lg transition-smooth border-secondary/20 bg-card/50 backdrop-blur">
                 <CardContent className="pt-6">
                   <div className="flex items-center justify-between mb-2">
-                    <div className="p-2 rounded-lg bg-gradient-to-br from-green-500 to-green-600">
-                      <CheckCircle className="w-5 h-5 text-white" />
+                    <div className="p-3 rounded-xl gradient-secondary shadow-glow-secondary">
+                      <CheckCircle className="w-5 h-5 text-secondary-foreground" />
                     </div>
                   </div>
                   <div className="text-3xl font-bold mb-1">{stats.verifiedDoctors}</div>
@@ -295,11 +295,11 @@ export default function AdminDashboard() {
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card className="hover:shadow-lg transition-smooth border-accent/20 bg-card/50 backdrop-blur">
                 <CardContent className="pt-6">
                   <div className="flex items-center justify-between mb-2">
-                    <div className="p-2 rounded-lg bg-gradient-to-br from-purple-500 to-purple-600">
-                      <Users className="w-5 h-5 text-white" />
+                    <div className="p-3 rounded-xl gradient-accent shadow-lg">
+                      <Users className="w-5 h-5 text-accent-foreground" />
                     </div>
                   </div>
                   <div className="text-3xl font-bold mb-1">{stats.totalPatients}</div>
@@ -307,11 +307,11 @@ export default function AdminDashboard() {
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card className="hover:shadow-lg transition-smooth border-primary/20 bg-card/50 backdrop-blur">
                 <CardContent className="pt-6">
                   <div className="flex items-center justify-between mb-2">
-                    <div className="p-2 rounded-lg bg-gradient-to-br from-orange-500 to-orange-600">
-                      <Calendar className="w-5 h-5 text-white" />
+                    <div className="p-3 rounded-xl gradient-primary shadow-glow">
+                      <Calendar className="w-5 h-5 text-primary-foreground" />
                     </div>
                   </div>
                   <div className="text-3xl font-bold mb-1">{stats.totalAppointments}</div>
@@ -320,17 +320,22 @@ export default function AdminDashboard() {
               </Card>
             </div>
 
-            <Card>
+            <Card className="border-primary/20 backdrop-blur">
               <CardHeader>
-                <CardTitle>Recent Activity</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <div className="w-1 h-6 gradient-primary rounded-full"></div>
+                  Recent Activity
+                </CardTitle>
                 <CardDescription>Latest appointments and registrations</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
+                <div className="space-y-3">
                   {appointments.slice(0, 5).map((appointment) => (
-                    <div key={appointment.id} className="flex items-center justify-between p-3 border rounded-lg">
+                    <div key={appointment.id} className="flex items-center justify-between p-4 border rounded-xl hover:shadow-md transition-smooth bg-card/50">
                       <div className="flex items-center gap-3">
-                        <Calendar className="w-4 h-4 text-muted-foreground" />
+                        <div className="p-2 rounded-lg gradient-secondary/20">
+                          <Calendar className="w-4 h-4 text-secondary" />
+                        </div>
                         <div>
                           <p className="text-sm font-medium">
                             {appointment.patients?.profiles?.full_name} → Dr. {appointment.doctors?.profiles?.full_name}

@@ -79,48 +79,48 @@ export default function DoctorDashboard() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-card pb-20">
+    <div className="min-h-screen bg-gradient-to-b from-background via-background to-card/50 pb-20">
       <MobileHeader title="Doctor Portal" profile={profile} />
 
       <main className="pt-20 px-4 pb-4 space-y-6">
         {/* Welcome Card */}
-        <Card className="bg-gradient-to-br from-primary/10 to-secondary/10 border-primary/20">
+        <Card className="gradient-secondary border-0 shadow-glow-secondary">
           <CardContent className="pt-6">
-            <h2 className="text-2xl font-bold mb-1">
+            <h2 className="text-2xl font-bold mb-1 text-secondary-foreground">
               Dr. {profile?.full_name?.split(' ')[0] || 'Doctor'} 👨‍⚕️
             </h2>
-            <p className="text-sm text-muted-foreground">
-              Manage your practice efficiently
+            <p className="text-sm text-secondary-foreground/80">
+              AI-powered practice management
             </p>
           </CardContent>
         </Card>
 
         {/* Quick Stats */}
         <div className="grid grid-cols-3 gap-3">
-          <Card className="hover:shadow-lg transition-shadow">
+          <Card className="hover:shadow-lg transition-smooth border-primary/20 bg-card/50 backdrop-blur">
             <CardContent className="pt-6">
-              <div className="p-2 rounded-lg bg-gradient-to-br from-primary to-primary/50 mb-2 w-fit">
-                <Calendar className="w-4 h-4 text-white" />
+              <div className="p-2 rounded-lg gradient-primary mb-2 w-fit shadow-md">
+                <Calendar className="w-4 h-4 text-primary-foreground" />
               </div>
               <div className="text-2xl font-bold mb-1">0</div>
               <p className="text-xs text-muted-foreground">Today</p>
             </CardContent>
           </Card>
 
-          <Card className="hover:shadow-lg transition-shadow">
+          <Card className="hover:shadow-lg transition-smooth border-secondary/20 bg-card/50 backdrop-blur">
             <CardContent className="pt-6">
-              <div className="p-2 rounded-lg bg-gradient-to-br from-secondary to-secondary/50 mb-2 w-fit">
-                <Users className="w-4 h-4 text-white" />
+              <div className="p-2 rounded-lg gradient-secondary mb-2 w-fit shadow-md">
+                <Users className="w-4 h-4 text-secondary-foreground" />
               </div>
               <div className="text-2xl font-bold mb-1">0</div>
               <p className="text-xs text-muted-foreground">Patients</p>
             </CardContent>
           </Card>
 
-          <Card className="hover:shadow-lg transition-shadow">
+          <Card className="hover:shadow-lg transition-smooth border-accent/20 bg-card/50 backdrop-blur">
             <CardContent className="pt-6">
-              <div className="p-2 rounded-lg bg-gradient-to-br from-accent to-accent/50 mb-2 w-fit">
-                <FileText className="w-4 h-4 text-white" />
+              <div className="p-2 rounded-lg gradient-accent mb-2 w-fit shadow-md">
+                <FileText className="w-4 h-4 text-accent-foreground" />
               </div>
               <div className="text-2xl font-bold mb-1">0</div>
               <p className="text-xs text-muted-foreground">Reports</p>
@@ -130,16 +130,19 @@ export default function DoctorDashboard() {
 
         {/* Quick Actions */}
         <div>
-          <h3 className="text-lg font-semibold mb-3">Quick Actions</h3>
+          <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+            <div className="w-1 h-6 gradient-secondary rounded-full"></div>
+            Quick Actions
+          </h3>
           <div className="grid grid-cols-2 gap-3">
             {quickActions.map((action, index) => (
               <Card
                 key={index}
-                className="cursor-pointer hover:shadow-lg transition-all active:scale-95"
+                className="cursor-pointer hover:shadow-xl transition-bounce border-secondary/10 bg-card/50 backdrop-blur"
                 onClick={() => navigate(action.path)}
               >
                 <CardContent className="pt-6 text-center">
-                  <div className={`inline-flex p-3 rounded-xl bg-gradient-to-br ${action.gradient} mb-3`}>
+                  <div className={`inline-flex p-4 rounded-2xl bg-gradient-to-br ${action.gradient} mb-3 shadow-lg`}>
                     <action.icon className="w-6 h-6 text-white" />
                   </div>
                   <h4 className="font-semibold text-sm mb-1">{action.label}</h4>
@@ -151,10 +154,12 @@ export default function DoctorDashboard() {
         </div>
 
         {/* Profile Completion */}
-        <Card className="border-primary/50 bg-gradient-to-br from-primary/5 to-secondary/5">
+        <Card className="border-accent/30 bg-gradient-to-br from-accent/5 to-primary/5 backdrop-blur">
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
-              <Brain className="w-5 h-5 text-primary" />
+              <div className="p-2 rounded-lg gradient-accent">
+                <Brain className="w-5 h-5 text-accent-foreground" />
+              </div>
               Complete Your Profile
             </CardTitle>
             <CardDescription>Get verified to receive appointments</CardDescription>
@@ -162,7 +167,7 @@ export default function DoctorDashboard() {
           <CardContent className="space-y-2">
             <Button 
               variant="outline" 
-              className="w-full justify-start" 
+              className="w-full justify-start hover:bg-accent/10 hover:border-accent/50" 
               size="sm"
               onClick={() => navigate("/profile")}
             >
@@ -170,7 +175,7 @@ export default function DoctorDashboard() {
             </Button>
             <Button 
               variant="outline" 
-              className="w-full justify-start" 
+              className="w-full justify-start hover:bg-accent/10 hover:border-accent/50" 
               size="sm"
               onClick={() => navigate("/profile")}
             >
@@ -178,7 +183,7 @@ export default function DoctorDashboard() {
             </Button>
             <Button 
               variant="outline" 
-              className="w-full justify-start" 
+              className="w-full justify-start hover:bg-accent/10 hover:border-accent/50" 
               size="sm"
               onClick={() => navigate("/profile")}
             >
