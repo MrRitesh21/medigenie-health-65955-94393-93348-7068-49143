@@ -71,13 +71,13 @@ All colors MUST be HSL.
   }
 
   .light {
-    --background: 0 0% 100%;
+    --background: 210 40% 98%;
     --foreground: 222.2 84% 4.9%;
 
-    --card: 0 0% 100%;
+    --card: 210 30% 97%;
     --card-foreground: 222.2 84% 4.9%;
 
-    --popover: 0 0% 100%;
+    --popover: 210 30% 97%;
     --popover-foreground: 222.2 84% 4.9%;
 
     --primary: 199 89% 52%;
@@ -102,8 +102,8 @@ All colors MUST be HSL.
     --gradient-primary: linear-gradient(135deg, hsl(199 89% 52%), hsl(174 62% 50%));
     --gradient-secondary: linear-gradient(135deg, hsl(174 62% 50%), hsl(262 83% 58%));
     --gradient-accent: linear-gradient(135deg, hsl(262 83% 58%), hsl(199 89% 52%));
-    --gradient-hero: linear-gradient(180deg, hsl(0 0% 100%), hsl(210 40% 98%));
-    --gradient-card: linear-gradient(135deg, hsl(0 0% 100%), hsl(210 40% 99%));
+    --gradient-hero: linear-gradient(180deg, hsl(210 40% 98%), hsl(210 35% 96%));
+    --gradient-card: linear-gradient(135deg, hsl(210 30% 97%), hsl(210 35% 96%));
     
     --shadow-sm: 0 2px 8px hsla(222, 47%, 11%, 0.06);
     --shadow-md: 0 4px 16px hsla(222, 47%, 11%, 0.08);
