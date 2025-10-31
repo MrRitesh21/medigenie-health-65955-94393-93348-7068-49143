@@ -13,50 +13,55 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import DoctorRating from "@/components/DoctorRating";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
-
 export default function Appointments() {
   const navigate = useNavigate();
-  const { toast } = useToast();
+  const {
+    toast
+  } = useToast();
   const [appointments, setAppointments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [patientId, setPatientId] = useState<string>("");
-  const { role } = useUserRole();
-
+  const {
+    role
+  } = useUserRole();
   useEffect(() => {
     checkAuth();
     fetchAppointments();
   }, []);
-
   const checkAuth = async () => {
-    const { data: { session } } = await supabase.auth.getSession();
+    const {
+      data: {
+        session
+      }
+    } = await supabase.auth.getSession();
     if (!session) {
       navigate("/auth");
     }
   };
-
   const fetchAppointments = async () => {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: {
+          session
+        }
+      } = await supabase.auth.getSession();
       if (!session) return;
 
       // Get patient ID
-      const { data: patientData } = await supabase
-        .from("patients")
-        .select("id")
-        .eq("user_id", session.user.id)
-        .single();
-
+      const {
+        data: patientData
+      } = await supabase.from("patients").select("id").eq("user_id", session.user.id).single();
       if (!patientData) {
         setLoading(false);
         return;
       }
-
       setPatientId(patientData.id);
 
       // Fetch appointments
-      const { data: appointmentsData, error } = await supabase
-        .from("appointments")
-        .select(`
+      const {
+        data: appointmentsData,
+        error
+      } = await supabase.from("appointments").select(`
           *,
           doctors (
             specialization,
@@ -66,24 +71,21 @@ export default function Appointments() {
             photo_url,
             profiles:user_id (full_name, phone)
           )
-        `)
-        .eq("patient_id", patientData.id)
-        .order("appointment_date", { ascending: true });
-
+        `).eq("patient_id", patientData.id).order("appointment_date", {
+        ascending: true
+      });
       if (error) throw error;
-
       setAppointments(appointmentsData || []);
     } catch (error: any) {
       toast({
         title: "Error",
         description: error.message,
-        variant: "destructive",
+        variant: "destructive"
       });
     } finally {
       setLoading(false);
     }
   };
-
   const getStatusColor = (status: string) => {
     switch (status) {
       case "scheduled":
@@ -96,28 +98,24 @@ export default function Appointments() {
         return "bg-gray-500/10 text-gray-600";
     }
   };
-
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
       weekday: "short",
       year: "numeric",
       month: "short",
-      day: "numeric",
+      day: "numeric"
     });
   };
-
   const formatTime = (dateString: string) => {
     return new Date(dateString).toLocaleTimeString("en-US", {
       hour: "2-digit",
-      minute: "2-digit",
+      minute: "2-digit"
     });
   };
-
-  return (
-    <div className="min-h-screen bg-background pb-20">
+  return <div className="min-h-screen bg-background pb-20">
       <MobileHeader title="Appointments" />
       
-      <div className="container mx-auto px-4 py-4 sm:px-6 lg:px-8 max-w-7xl">
+      <div className="container mx-auto px-4 py-4 sm:px-6 lg:px-8 max-w-7xl my-[50px]">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold">My Appointments</h1>
@@ -129,19 +127,14 @@ export default function Appointments() {
           </Button>
         </div>
 
-        {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {[1, 2, 3].map((i) => (
-              <Card key={i} className="animate-pulse">
+        {loading ? <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {[1, 2, 3].map(i => <Card key={i} className="animate-pulse">
                 <CardHeader>
                   <div className="h-6 bg-muted rounded w-3/4"></div>
                   <div className="h-4 bg-muted rounded w-1/2 mt-2"></div>
                 </CardHeader>
-              </Card>
-            ))}
-          </div>
-        ) : appointments.length === 0 ? (
-          <Card>
+              </Card>)}
+          </div> : appointments.length === 0 ? <Card>
             <CardContent className="flex flex-col items-center justify-center py-12">
               <Calendar className="h-16 w-16 text-muted-foreground mb-4" />
               <h3 className="text-xl font-semibold mb-2">No appointments yet</h3>
@@ -153,11 +146,8 @@ export default function Appointments() {
                 Book Appointment
               </Button>
             </CardContent>
-          </Card>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
-            {appointments.map((appointment) => (
-              <Card key={appointment.id} className="hover:shadow-md transition-shadow flex flex-col">
+          </Card> : <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
+            {appointments.map(appointment => <Card key={appointment.id} className="hover:shadow-md transition-shadow flex flex-col">
                 <CardHeader className="pb-3">
                   <div className="flex items-start gap-3">
                     <Avatar className="w-12 h-12 sm:w-14 sm:h-14 flex-shrink-0">
@@ -195,40 +185,29 @@ export default function Appointments() {
                       <span className="text-xs sm:text-sm">{formatTime(appointment.appointment_date)} • {appointment.duration_minutes} mins</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      {appointment.type === "teleconsult" ? (
-                        <>
+                      {appointment.type === "teleconsult" ? <>
                           <Video className="h-3.5 w-3.5 flex-shrink-0 text-primary" />
                           <span className="text-xs sm:text-sm">Teleconsultation</span>
-                        </>
-                      ) : (
-                        <>
+                        </> : <>
                           <Building2 className="h-3.5 w-3.5 flex-shrink-0 text-primary" />
                           <span className="text-xs sm:text-sm">In-Clinic Visit</span>
-                        </>
-                      )}
+                        </>}
                     </div>
-                    {appointment.doctors?.clinic_name && appointment.type === "in-clinic" && (
-                      <div className="flex items-start gap-2">
+                    {appointment.doctors?.clinic_name && appointment.type === "in-clinic" && <div className="flex items-start gap-2">
                         <MapPin className="h-3.5 w-3.5 flex-shrink-0 text-primary mt-0.5" />
                         <div className="flex-1 min-w-0">
                           <p className="text-xs sm:text-sm font-medium">{appointment.doctors.clinic_name}</p>
-                          {appointment.doctors?.clinic_address && (
-                            <p className="text-xs text-muted-foreground line-clamp-1">{appointment.doctors.clinic_address}</p>
-                          )}
+                          {appointment.doctors?.clinic_address && <p className="text-xs text-muted-foreground line-clamp-1">{appointment.doctors.clinic_address}</p>}
                         </div>
-                      </div>
-                    )}
+                      </div>}
                   </CardDescription>
                  </CardHeader>
                 <CardContent className="space-y-3 pt-0 flex-1">
-                  {appointment.symptoms && (
-                    <p className="text-xs sm:text-sm text-muted-foreground line-clamp-2">
+                  {appointment.symptoms && <p className="text-xs sm:text-sm text-muted-foreground line-clamp-2">
                       <strong>Symptoms:</strong> {appointment.symptoms}
-                    </p>
-                  )}
+                    </p>}
                   
-                  {appointment.status === "completed" && (
-                    <Dialog>
+                  {appointment.status === "completed" && <Dialog>
                       <DialogTrigger asChild>
                         <Button variant="outline" className="w-full text-xs sm:text-sm">
                           <Star className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-2" />
@@ -239,28 +218,19 @@ export default function Appointments() {
                         <DialogHeader>
                           <DialogTitle className="text-lg sm:text-xl">Rate Your Experience</DialogTitle>
                         </DialogHeader>
-                        <DoctorRating
-                          doctorId={appointment.doctor_id}
-                          appointmentId={appointment.id}
-                          patientId={patientId}
-                          onRatingSubmitted={() => {
-                            toast({
-                              title: "Thank you!",
-                              description: "Your rating has been submitted",
-                            });
-                          }}
-                        />
+                        <DoctorRating doctorId={appointment.doctor_id} appointmentId={appointment.id} patientId={patientId} onRatingSubmitted={() => {
+                  toast({
+                    title: "Thank you!",
+                    description: "Your rating has been submitted"
+                  });
+                }} />
                       </DialogContent>
-                    </Dialog>
-                  )}
+                    </Dialog>}
                 </CardContent>
-              </Card>
-            ))}
-          </div>
-        )}
+              </Card>)}
+          </div>}
       </div>
 
       <MobileBottomNav role={role} />
-    </div>
-  );
+    </div>;
 }
