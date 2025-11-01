@@ -6,7 +6,7 @@
       "has": [
         {
           "type": "host",
-          "value": "(?<subdomain>[^.]+)\\.DineUp\\.digiwil\\.in"
+          "value": "(?<subdomain>[^.]+)\\.MediCare\\.digiwil\\.in"
         }
       ],
       "destination": "/index.html"
@@ -16,14 +16,14 @@
       "has": [
         {
           "type": "host",
-          "value": "DineUp\\.digiwil\\.in"
+          "value": "MediCare\\.digiwil\\.in"
         }
       ],
       "destination": "/index.html"
     }
   ],
   "env": {
-    "VITE_BASE_DOMAIN": "DineUp.digiwil.in"
+    "VITE_BASE_DOMAIN": "MediCare.digiwil.in"
   },
   "headers": [
     {
