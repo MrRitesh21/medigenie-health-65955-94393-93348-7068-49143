@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
-import { Activity, Calendar, FileText, Brain, MessageCircle, TrendingUp, Pill } from "lucide-react";
+import { Activity, Calendar, FileText, Brain, MessageCircle, TrendingUp, Pill, Newspaper } from "lucide-react";
 import { MobileHeader } from "@/components/MobileHeader";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
 
@@ -101,6 +101,12 @@ export default function PatientDashboard() {
       label: "Medicine Reminder",
       description: "Smart medication alerts",
       path: "/medicine-reminder",
+    },
+    {
+      icon: Newspaper,
+      label: "Health Feed",
+      description: "Personalized health tips",
+      path: "/health-feed",
     },
   ];
 

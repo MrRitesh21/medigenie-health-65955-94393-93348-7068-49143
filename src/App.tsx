@@ -24,6 +24,7 @@ import Appointments from "./pages/Appointments";
 import AIAssistant from "./pages/AIAssistant";
 import Records from "./pages/Records";
 import Profile from "./pages/Profile";
+import HealthFeed from "./pages/HealthFeed";
 
 const queryClient = new QueryClient();
 
@@ -54,6 +55,7 @@ const App = () => (
           <Route path="/ai-assistant" element={<AIAssistant />} />
           <Route path="/records" element={<Records />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/health-feed" element={<HealthFeed />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
