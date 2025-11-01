@@ -1,0 +1,36 @@
+
+{
+  "rewrites": [
+    {
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "(?<subdomain>[^.]+)\\.DineUp\\.digiwil\\.in"
+        }
+      ],
+      "destination": "/index.html"
+    },
+    {
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "DineUp\\.digiwil\\.in"
+        }
+      ],
+      "destination": "/index.html"
+    }
+  ],
+  "env": {
+    "VITE_BASE_DOMAIN": "DineUp.digiwil.in"
+  },
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "Access-Control-Allow-Origin", "value": "*" }
+      ]
+    }
+  ]
+}
