@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -19,6 +19,38 @@ export default function PrescriptionAssistant() {
   const [allergies, setAllergies] = useState("");
   const [loading, setLoading] = useState(false);
   const [prescription, setPrescription] = useState<string>("");
+  const [checkingAuth, setCheckingAuth] = useState(true);
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        navigate("/auth");
+        return;
+      }
+
+      const { data: profileData } = await (supabase as any)
+        .from("profiles")
+        .select("role")
+        .eq("id", session.user.id)
+        .single();
+
+      if (profileData?.role !== 'doctor') {
+        toast({
+          title: "Access Denied",
+          description: "This feature is only available for doctors",
+          variant: "destructive",
+        });
+        navigate("/dashboard");
+        return;
+      }
+
+      setCheckingAuth(false);
+    };
+
+    checkAuth();
+  }, [navigate, toast]);
 
   const handleGenerate = async () => {
     if (!diagnosis.trim() || !symptoms.trim()) {
@@ -51,6 +83,14 @@ export default function PrescriptionAssistant() {
       setLoading(false);
     }
   };
+
+  if (checkingAuth) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Pill className="w-12 h-12 text-primary animate-pulse" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-card pb-20">

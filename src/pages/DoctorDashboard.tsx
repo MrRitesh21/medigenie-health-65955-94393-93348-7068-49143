@@ -50,9 +50,9 @@ export default function DoctorDashboard() {
   const quickActions = [
     {
       icon: Calendar,
-      label: "Appointments",
-      description: "Manage schedule",
-      path: "/appointments",
+      label: "My Schedule",
+      description: "View appointments",
+      path: "/schedules",
       gradient: "from-primary to-primary/50"
     },
     {
