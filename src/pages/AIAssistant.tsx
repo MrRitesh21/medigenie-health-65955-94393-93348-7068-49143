@@ -6,57 +6,65 @@ import { MobileBottomNav } from "@/components/MobileBottomNav";
 import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useUserRole } from "@/hooks/useUserRole";
-const aiFeatures = [{
+const allAiFeatures = [{
   title: "Symptom Checker",
   description: "Analyze your symptoms with AI-powered assessment",
   icon: Stethoscope,
   path: "/symptom-checker",
   color: "text-blue-600",
-  bgColor: "bg-blue-50 dark:bg-blue-950/20"
+  bgColor: "bg-blue-50 dark:bg-blue-950/20",
+  allowedRoles: ['patient', 'doctor', 'pharmacy', 'admin']
 }, {
   title: "Report Simplifier",
   description: "Get medical reports explained in simple terms",
   icon: FileText,
   path: "/report-simplifier",
   color: "text-green-600",
-  bgColor: "bg-green-50 dark:bg-green-950/20"
+  bgColor: "bg-green-50 dark:bg-green-950/20",
+  allowedRoles: ['patient', 'doctor', 'pharmacy', 'admin']
 }, {
   title: "Medicine Reminder",
   description: "Set intelligent medication reminders",
   icon: Pill,
   path: "/medicine-reminder",
   color: "text-purple-600",
-  bgColor: "bg-purple-50 dark:bg-purple-950/20"
+  bgColor: "bg-purple-50 dark:bg-purple-950/20",
+  allowedRoles: ['patient', 'doctor', 'pharmacy', 'admin']
 }, {
   title: "Patient Chatbot",
   description: "Get instant answers to your health questions",
   icon: MessageSquare,
   path: "/patient-chatbot",
   color: "text-orange-600",
-  bgColor: "bg-orange-50 dark:bg-orange-950/20"
+  bgColor: "bg-orange-50 dark:bg-orange-950/20",
+  allowedRoles: ['patient', 'doctor', 'pharmacy', 'admin']
 }, {
   title: "Voice Notes",
   description: "Convert voice notes to structured medical records",
   icon: Mic,
   path: "/voice-notes",
   color: "text-pink-600",
-  bgColor: "bg-pink-50 dark:bg-pink-950/20"
+  bgColor: "bg-pink-50 dark:bg-pink-950/20",
+  allowedRoles: ['doctor', 'admin']
 }, {
   title: "Prescription Assistant",
   description: "AI-powered prescription generation for doctors",
   icon: Brain,
   path: "/prescription-assistant",
   color: "text-indigo-600",
-  bgColor: "bg-indigo-50 dark:bg-indigo-950/20"
+  bgColor: "bg-indigo-50 dark:bg-indigo-950/20",
+  allowedRoles: ['doctor', 'admin']
 }];
 export default function AIAssistant() {
   const navigate = useNavigate();
   const {
     role
   } = useUserRole();
+  
   useEffect(() => {
     checkAuth();
   }, []);
+  
   const checkAuth = async () => {
     const {
       data: {
@@ -67,6 +75,12 @@ export default function AIAssistant() {
       navigate("/auth");
     }
   };
+
+  // Filter features based on user role
+  const aiFeatures = allAiFeatures.filter(feature => 
+    feature.allowedRoles.includes(role)
+  );
+
   return <div className="min-h-screen bg-background pb-20">
       <MobileHeader title="AI Assistant" />
       
