@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
-import { Activity, Calendar, FileText, Brain, MessageCircle, TrendingUp, Pill, Newspaper } from "lucide-react";
+import { Activity, Calendar, FileText, Brain, MessageCircle, TrendingUp, Pill, Newspaper, Stethoscope } from "lucide-react";
 import { MobileHeader } from "@/components/MobileHeader";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
 
@@ -48,6 +48,13 @@ export default function PatientDashboard() {
 
   const quickActions = [
     {
+      icon: Stethoscope,
+      label: "Smart Match",
+      description: "AI finds best doctor",
+      path: "/smart-doctor-match",
+      gradient: "from-purple-500 to-purple-300"
+    },
+    {
       icon: Calendar,
       label: "Book Now",
       description: "New appointment",
@@ -60,13 +67,6 @@ export default function PatientDashboard() {
       description: "AI analysis",
       path: "/symptom-checker",
       gradient: "from-secondary to-secondary/50"
-    },
-    {
-      icon: FileText,
-      label: "Report Simplifier",
-      description: "Explain reports",
-      path: "/report-simplifier",
-      gradient: "from-accent to-accent/50"
     },
     {
       icon: MessageCircle,

@@ -1,1 +1,52 @@
 project_id = "jfqsdiphiqjxgsmmvotw"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[auth]
+enabled = true
+site_url = "http://localhost:5173"
+additional_redirect_urls = ["https://lovable.dev"]
+jwt_expiry = 3600
+enable_signup = true
+enable_anonymous_sign_ins = false
+
+[auth.email]
+enable_signup = true
+double_confirm_changes = true
+enable_confirmations = false
+max_frequency = "1h"
+
+[functions.analytics-insights]
+verify_jwt = false
+
+[functions.medicine-reminder-chat]
+verify_jwt = false
+
+[functions.patient-chatbot]
+verify_jwt = false
+
+[functions.prescription-assistant]
+verify_jwt = false
+
+[functions.report-simplifier]
+verify_jwt = false
+
+[functions.structure-notes]
+verify_jwt = false
+
+[functions.symptom-checker]
+verify_jwt = false
+
+[functions.text-to-speech]
+verify_jwt = false
+
+[functions.voice-to-text]
+verify_jwt = false
+
+[functions.smart-doctor-matching]
+verify_jwt = false

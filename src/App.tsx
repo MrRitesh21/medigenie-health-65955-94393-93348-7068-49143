@@ -23,6 +23,7 @@ import Analytics from "./pages/Analytics";
 import Appointments from "./pages/Appointments";
 import Schedules from "./pages/Schedules";
 import DoctorRegistration from "./pages/DoctorRegistration";
+import SmartDoctorMatch from "./pages/SmartDoctorMatch";
 import AIAssistant from "./pages/AIAssistant";
 import Records from "./pages/Records";
 import Profile from "./pages/Profile";
@@ -56,6 +57,7 @@ const App = () => (
           <Route path="/appointments" element={<Appointments />} />
           <Route path="/schedules" element={<Schedules />} />
           <Route path="/doctor-registration" element={<DoctorRegistration />} />
+          <Route path="/smart-doctor-match" element={<SmartDoctorMatch />} />
           <Route path="/ai-assistant" element={<AIAssistant />} />
           <Route path="/records" element={<Records />} />
           <Route path="/profile" element={<Profile />} />
