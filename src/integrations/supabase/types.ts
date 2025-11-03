@@ -208,6 +208,53 @@ export type Database = {
           },
         ]
       }
+      health_record_tokens: {
+        Row: {
+          access_count: number | null
+          accessed_by: string[] | null
+          created_at: string | null
+          expires_at: string
+          id: string
+          is_active: boolean | null
+          max_uses: number | null
+          metadata: Json | null
+          patient_id: string
+          token: string
+        }
+        Insert: {
+          access_count?: number | null
+          accessed_by?: string[] | null
+          created_at?: string | null
+          expires_at: string
+          id?: string
+          is_active?: boolean | null
+          max_uses?: number | null
+          metadata?: Json | null
+          patient_id: string
+          token: string
+        }
+        Update: {
+          access_count?: number | null
+          accessed_by?: string[] | null
+          created_at?: string | null
+          expires_at?: string
+          id?: string
+          is_active?: boolean | null
+          max_uses?: number | null
+          metadata?: Json | null
+          patient_id?: string
+          token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "health_record_tokens_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       patients: {
         Row: {
           address: string | null
@@ -456,13 +503,15 @@ export type Database = {
         }
         Returns: boolean
       }
-      is_admin: {
-        Args: { _user_id: string }
-        Returns: boolean
-      }
-      is_doctor: {
-        Args: { _user_id: string }
-        Returns: boolean
+      is_admin: { Args: { _user_id: string }; Returns: boolean }
+      is_doctor: { Args: { _user_id: string }; Returns: boolean }
+      validate_and_use_token: {
+        Args: { p_doctor_id: string; p_token: string }
+        Returns: {
+          is_valid: boolean
+          message: string
+          patient_id: string
+        }[]
       }
     }
     Enums: {

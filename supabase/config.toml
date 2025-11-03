@@ -50,3 +50,9 @@ verify_jwt = false
 
 [functions.smart-doctor-matching]
 verify_jwt = false
+
+[functions.generate-health-qr]
+verify_jwt = true
+
+[functions.access-health-records]
+verify_jwt = true

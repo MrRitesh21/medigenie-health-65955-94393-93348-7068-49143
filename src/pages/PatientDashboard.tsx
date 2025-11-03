@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
-import { Activity, Calendar, FileText, Brain, MessageCircle, TrendingUp, Pill, Newspaper, Stethoscope } from "lucide-react";
+import { Activity, Calendar, FileText, Brain, MessageCircle, TrendingUp, Pill, Newspaper, Stethoscope, QrCode } from "lucide-react";
 import { MobileHeader } from "@/components/MobileHeader";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
 
@@ -78,6 +78,12 @@ export default function PatientDashboard() {
   ];
 
   const aiFeatures = [
+    {
+      icon: QrCode,
+      label: "Share Records",
+      description: "QR code for doctors",
+      path: "/health-record-share",
+    },
     {
       icon: Brain,
       label: "Symptom Checker",

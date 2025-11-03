@@ -28,6 +28,8 @@ import AIAssistant from "./pages/AIAssistant";
 import Records from "./pages/Records";
 import Profile from "./pages/Profile";
 import HealthFeed from "./pages/HealthFeed";
+import HealthRecordShare from "./pages/HealthRecordShare";
+import ScanHealthRecord from "./pages/ScanHealthRecord";
 
 const queryClient = new QueryClient();
 
@@ -62,6 +64,8 @@ const App = () => (
           <Route path="/records" element={<Records />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/health-feed" element={<HealthFeed />} />
+          <Route path="/health-record-share" element={<HealthRecordShare />} />
+          <Route path="/scan-health-record" element={<ScanHealthRecord />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
