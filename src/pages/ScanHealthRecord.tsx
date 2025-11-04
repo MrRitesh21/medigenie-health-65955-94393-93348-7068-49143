@@ -106,6 +106,19 @@ export default function ScanHealthRecord() {
 
   const startScanner = async () => {
     try {
+      // First check if camera permission is available
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error("Camera not supported on this device");
+      }
+
+      // Request camera permission first
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        video: { facingMode: "environment" } 
+      });
+      
+      // Stop the test stream immediately
+      stream.getTracks().forEach(track => track.stop());
+
       setIsScanning(true);
       
       const html5QrCode = new Html5Qrcode("qr-reader");
@@ -118,17 +131,36 @@ export default function ScanHealthRecord() {
           qrbox: { width: 250, height: 250 }
         },
         (decodedText) => {
+          console.log("QR Code detected:", decodedText);
           handleScan(decodedText);
         },
         (errorMessage) => {
-          // Ignore errors during scanning
+          // Ignore scanning errors (they happen continuously when no QR code is visible)
         }
       );
-    } catch (err) {
+
+      toast({
+        title: "Camera Active",
+        description: "Point your camera at the QR code to scan"
+      });
+
+    } catch (err: any) {
       console.error("Error starting scanner:", err);
+      let errorMessage = "Unable to access camera. ";
+      
+      if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+        errorMessage += "Please allow camera permissions in your browser settings.";
+      } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
+        errorMessage += "No camera found on this device.";
+      } else if (err.name === 'NotReadableError' || err.name === 'TrackStartError') {
+        errorMessage += "Camera is already in use by another application.";
+      } else {
+        errorMessage += err.message || "Please check your device settings.";
+      }
+
       toast({
         title: "Camera Error",
-        description: "Unable to access camera. Please check permissions.",
+        description: errorMessage,
         variant: "destructive"
       });
       setIsScanning(false);
