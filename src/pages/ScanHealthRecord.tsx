@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,12 +6,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
-import { Loader2, ScanLine, User, Calendar, FileText, AlertCircle, Heart, Phone, MapPin } from "lucide-react";
+import { Loader2, ScanLine, User, Calendar, FileText, AlertCircle, Heart, Phone, MapPin, Camera, X } from "lucide-react";
 import { MobileHeader } from "@/components/MobileHeader";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
 import { useUserRole } from "@/hooks/useUserRole";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Html5Qrcode } from "html5-qrcode";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function ScanHealthRecord() {
   const navigate = useNavigate();
@@ -20,9 +22,15 @@ export default function ScanHealthRecord() {
   const [isLoading, setIsLoading] = useState(false);
   const [token, setToken] = useState("");
   const [patientData, setPatientData] = useState<any>(null);
+  const [isScanning, setIsScanning] = useState(false);
+  const scannerRef = useRef<Html5Qrcode | null>(null);
+  const qrReaderRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     checkAuth();
+    return () => {
+      stopScanner();
+    };
   }, []);
 
   const checkAuth = async () => {
@@ -49,8 +57,10 @@ export default function ScanHealthRecord() {
     }
   };
 
-  const handleScan = async () => {
-    if (!token.trim()) {
+  const handleScan = async (scannedToken?: string) => {
+    const tokenToUse = scannedToken || token.trim();
+    
+    if (!tokenToUse) {
       toast({
         title: "Missing Token",
         description: "Please enter a valid access token",
@@ -62,7 +72,7 @@ export default function ScanHealthRecord() {
     setIsLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke('access-health-records', {
-        body: { token: token.trim() }
+        body: { token: tokenToUse }
       });
 
       if (error) throw error;
@@ -77,6 +87,10 @@ export default function ScanHealthRecord() {
         description: "Patient records loaded successfully"
       });
 
+      if (isScanning) {
+        stopScanner();
+      }
+
     } catch (error: any) {
       console.error('Error accessing records:', error);
       toast({
@@ -88,6 +102,50 @@ export default function ScanHealthRecord() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const startScanner = async () => {
+    try {
+      setIsScanning(true);
+      
+      const html5QrCode = new Html5Qrcode("qr-reader");
+      scannerRef.current = html5QrCode;
+
+      await html5QrCode.start(
+        { facingMode: "environment" },
+        {
+          fps: 10,
+          qrbox: { width: 250, height: 250 }
+        },
+        (decodedText) => {
+          handleScan(decodedText);
+        },
+        (errorMessage) => {
+          // Ignore errors during scanning
+        }
+      );
+    } catch (err) {
+      console.error("Error starting scanner:", err);
+      toast({
+        title: "Camera Error",
+        description: "Unable to access camera. Please check permissions.",
+        variant: "destructive"
+      });
+      setIsScanning(false);
+    }
+  };
+
+  const stopScanner = async () => {
+    if (scannerRef.current) {
+      try {
+        await scannerRef.current.stop();
+        scannerRef.current.clear();
+        scannerRef.current = null;
+      } catch (err) {
+        console.error("Error stopping scanner:", err);
+      }
+    }
+    setIsScanning(false);
   };
 
   return (
@@ -107,43 +165,90 @@ export default function ScanHealthRecord() {
           </CardHeader>
         </Card>
 
-        {/* Token Input */}
+        {/* Scanner Options */}
         <Card className="mb-6">
           <CardHeader>
-            <CardTitle>Enter Access Token</CardTitle>
-            <CardDescription>Input the token shared by the patient</CardDescription>
+            <CardTitle>Access Patient Records</CardTitle>
+            <CardDescription>Scan QR code or enter token manually</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <Label htmlFor="token">Access Token</Label>
-              <Input
-                id="token"
-                placeholder="Enter 16-character token"
-                value={token}
-                onChange={(e) => setToken(e.target.value)}
-                className="mt-2 font-mono"
-                maxLength={16}
-              />
-            </div>
-
-            <Button 
-              onClick={handleScan} 
-              disabled={isLoading || !token.trim()}
-              className="w-full"
-              size="lg"
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Accessing Records...
-                </>
-              ) : (
-                <>
+          <CardContent>
+            <Tabs defaultValue="scan" className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="scan">
+                  <Camera className="mr-2 h-4 w-4" />
+                  Scan QR
+                </TabsTrigger>
+                <TabsTrigger value="manual">
                   <ScanLine className="mr-2 h-4 w-4" />
-                  Access Records
-                </>
-              )}
-            </Button>
+                  Enter Token
+                </TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="scan" className="space-y-4">
+                {!isScanning ? (
+                  <div className="text-center py-6">
+                    <Button 
+                      onClick={startScanner}
+                      size="lg"
+                      className="w-full"
+                    >
+                      <Camera className="mr-2 h-4 w-4" />
+                      Start Camera Scanner
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <div 
+                      id="qr-reader" 
+                      ref={qrReaderRef}
+                      className="rounded-lg overflow-hidden border-2 border-primary"
+                    />
+                    <Button 
+                      onClick={stopScanner}
+                      variant="destructive"
+                      size="lg"
+                      className="w-full"
+                    >
+                      <X className="mr-2 h-4 w-4" />
+                      Stop Scanner
+                    </Button>
+                  </div>
+                )}
+              </TabsContent>
+              
+              <TabsContent value="manual" className="space-y-4">
+                <div>
+                  <Label htmlFor="token">Access Token</Label>
+                  <Input
+                    id="token"
+                    placeholder="Enter 16-character token"
+                    value={token}
+                    onChange={(e) => setToken(e.target.value)}
+                    className="mt-2 font-mono"
+                    maxLength={16}
+                  />
+                </div>
+
+                <Button 
+                  onClick={() => handleScan()} 
+                  disabled={isLoading || !token.trim()}
+                  className="w-full"
+                  size="lg"
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Accessing Records...
+                    </>
+                  ) : (
+                    <>
+                      <ScanLine className="mr-2 h-4 w-4" />
+                      Access Records
+                    </>
+                  )}
+                </Button>
+              </TabsContent>
+            </Tabs>
           </CardContent>
         </Card>
 
