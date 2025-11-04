@@ -14,16 +14,22 @@ serve(async (req) => {
   try {
     const { expiryHours, maxUses } = await req.json();
     
-    const authHeader = req.headers.get('Authorization')!;
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseKey, {
-      global: { headers: { Authorization: authHeader } }
-    });
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      throw new Error('Missing authorization header');
+    }
 
-    // Get current user
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    // Extract JWT token from header
+    const jwtToken = authHeader.replace('Bearer ', '');
+    
+    // Verify and get user from JWT
+    const { data: { user }, error: userError } = await supabase.auth.getUser(jwtToken);
     if (userError || !user) {
+      console.error('Auth error:', userError);
       throw new Error('Unauthorized');
     }
 
