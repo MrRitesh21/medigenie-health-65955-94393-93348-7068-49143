@@ -16,22 +16,27 @@ serve(async (req) => {
     
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
+      console.error('Missing authorization header');
       throw new Error('Missing authorization header');
     }
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
-
-    // Extract JWT token from header
-    const jwtToken = authHeader.replace('Bearer ', '');
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
     
-    // Verify and get user from JWT
-    const { data: { user }, error: userError } = await supabase.auth.getUser(jwtToken);
+    // Create client with user's auth token
+    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } }
+    });
+
+    // Get current user (JWT is already verified by Edge Runtime)
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    
     if (userError || !user) {
       console.error('Auth error:', userError);
-      throw new Error('Unauthorized');
+      throw new Error('Unauthorized - Invalid session');
     }
+    
+    console.log('Authenticated user:', user.id);
 
     // Get patient ID
     const { data: patient, error: patientError } = await supabase
