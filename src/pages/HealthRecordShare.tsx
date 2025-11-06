@@ -187,6 +187,32 @@ export default function HealthRecordShare() {
 
   const isExpired = (expiresAt: string) => new Date(expiresAt) < new Date();
 
+  const showTokenQR = (token: any) => {
+    if (token.is_active && !isExpired(token.expires_at)) {
+      // Generate QR code URL for this token
+      const qrData = JSON.stringify({
+        token: token.token,
+        type: 'health_record_access',
+        expires: token.expires_at
+      });
+      
+      const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(qrData)}`;
+      
+      setQrCode({
+        token: token.token,
+        qrCodeUrl,
+        expiresAt: token.expires_at,
+        maxUses: token.max_uses,
+        tokenData: token
+      });
+
+      toast({
+        title: "QR Code Ready",
+        description: "Scroll up to view your QR code"
+      });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background pb-20">
       <MobileHeader title="Health Record Sharing" />
@@ -325,40 +351,53 @@ export default function HealthRecordShare() {
               </div>
             ) : (
               <div className="space-y-3">
-                {activeTokens.map((token) => (
-                  <Card key={token.id} className={`${!token.is_active || isExpired(token.expires_at) ? 'opacity-60' : ''}`}>
-                    <CardContent className="pt-4">
-                      <div className="flex items-start justify-between mb-2">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className="font-mono text-sm">{token.token}</span>
-                            {token.is_active && !isExpired(token.expires_at) ? (
-                              <Badge variant="default" className="bg-green-500">Active</Badge>
-                            ) : (
-                              <Badge variant="secondary">
-                                {isExpired(token.expires_at) ? 'Expired' : 'Revoked'}
-                              </Badge>
-                            )}
+                {activeTokens.map((token) => {
+                  const isActive = token.is_active && !isExpired(token.expires_at);
+                  return (
+                    <Card 
+                      key={token.id} 
+                      className={`${!token.is_active || isExpired(token.expires_at) ? 'opacity-60' : 'cursor-pointer hover:border-primary/50 transition-colors'}`}
+                      onClick={() => showTokenQR(token)}
+                    >
+                      <CardContent className="pt-4">
+                        <div className="flex items-start justify-between mb-2">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="font-mono text-sm">{token.token}</span>
+                              {isActive ? (
+                                <Badge variant="default" className="bg-green-500">Active</Badge>
+                              ) : (
+                                <Badge variant="secondary">
+                                  {isExpired(token.expires_at) ? 'Expired' : 'Revoked'}
+                                </Badge>
+                              )}
+                              {isActive && (
+                                <Badge variant="outline" className="text-xs">Click to view QR</Badge>
+                              )}
+                            </div>
+                            <div className="text-xs text-muted-foreground space-y-1">
+                              <div>Created: {new Date(token.created_at).toLocaleString()}</div>
+                              <div>Expires: {new Date(token.expires_at).toLocaleString()}</div>
+                              <div>Uses: {token.access_count}{token.max_uses ? `/${token.max_uses}` : ''}</div>
+                            </div>
                           </div>
-                          <div className="text-xs text-muted-foreground space-y-1">
-                            <div>Created: {new Date(token.created_at).toLocaleString()}</div>
-                            <div>Expires: {new Date(token.expires_at).toLocaleString()}</div>
-                            <div>Uses: {token.access_count}{token.max_uses ? `/${token.max_uses}` : ''}</div>
-                          </div>
+                          {isActive && (
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                revokeToken(token.id);
+                              }}
+                            >
+                              <XCircle className="h-4 w-4" />
+                            </Button>
+                          )}
                         </div>
-                        {token.is_active && !isExpired(token.expires_at) && (
-                          <Button
-                            size="sm"
-                            variant="destructive"
-                            onClick={() => revokeToken(token.id)}
-                          >
-                            <XCircle className="h-4 w-4" />
-                          </Button>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                      </CardContent>
+                    </Card>
+                  );
+                })}
               </div>
             )}
           </CardContent>
