@@ -24,6 +24,12 @@ serve(async (req) => {
     const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     
+    console.log('Environment check:', {
+      hasUrl: !!supabaseUrl,
+      hasAnonKey: !!supabaseAnonKey,
+      hasServiceKey: !!supabaseServiceKey
+    });
+    
     // Create client with user's auth token for authentication
     const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
@@ -41,16 +47,28 @@ serve(async (req) => {
     // Create service role client for database operations
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
+    console.log('Querying patient for user_id:', user.id);
+    
     // Get patient ID
     const { data: patient, error: patientError } = await supabaseAdmin
       .from('patients')
       .select('id')
       .eq('user_id', user.id)
-      .single();
+      .maybeSingle();
 
-    if (patientError || !patient) {
+    console.log('Patient query result:', { patient, error: patientError });
+
+    if (patientError) {
+      console.error('Patient query error:', patientError);
+      throw new Error(`Database error: ${patientError.message}`);
+    }
+
+    if (!patient) {
+      console.error('No patient found for user_id:', user.id);
       throw new Error('Patient profile not found');
     }
+    
+    console.log('Found patient:', patient.id);
 
     // Generate secure random token
     const token = crypto.randomUUID().replace(/-/g, '').substring(0, 16);
