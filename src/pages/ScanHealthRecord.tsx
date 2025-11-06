@@ -41,11 +41,22 @@ export default function ScanHealthRecord() {
     }
 
     // Check if user is a doctor
-    const { data: profile } = await supabase
+    const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('role')
       .eq('id', session.user.id)
-      .single();
+      .maybeSingle();
+
+    if (profileError) {
+      console.error('Error fetching profile:', profileError);
+      toast({
+        title: "Error",
+        description: "Failed to verify user role",
+        variant: "destructive"
+      });
+      navigate("/dashboard");
+      return;
+    }
 
     if (profile?.role !== 'doctor') {
       toast({
@@ -58,7 +69,17 @@ export default function ScanHealthRecord() {
   };
 
   const handleScan = async (scannedToken?: string) => {
-    const tokenToUse = scannedToken || token.trim();
+    let tokenToUse = scannedToken || token.trim();
+    
+    // Try to parse as JSON in case it's from a QR code
+    try {
+      const parsed = JSON.parse(tokenToUse);
+      if (parsed.token) {
+        tokenToUse = parsed.token;
+      }
+    } catch {
+      // Not JSON, use as-is
+    }
     
     if (!tokenToUse) {
       toast({
@@ -75,7 +96,14 @@ export default function ScanHealthRecord() {
         body: { token: tokenToUse }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Edge function error:', error);
+        throw new Error(error.message || 'Failed to access records');
+      }
+
+      if (!data) {
+        throw new Error('No response from server');
+      }
 
       if (!data.success) {
         throw new Error(data.message || 'Access denied');
@@ -95,7 +123,7 @@ export default function ScanHealthRecord() {
       console.error('Error accessing records:', error);
       toast({
         title: "Access Failed",
-        description: error.message,
+        description: error.message || 'An unexpected error occurred',
         variant: "destructive"
       });
       setPatientData(null);
@@ -132,7 +160,19 @@ export default function ScanHealthRecord() {
         },
         (decodedText) => {
           console.log("QR Code detected:", decodedText);
-          handleScan(decodedText);
+          // Try to parse as JSON (QR code format)
+          try {
+            const qrData = JSON.parse(decodedText);
+            if (qrData.token && qrData.type === 'health_record_access') {
+              handleScan(qrData.token);
+            } else {
+              // If not in expected format, use as-is
+              handleScan(decodedText);
+            }
+          } catch {
+            // If not JSON, use as plain token
+            handleScan(decodedText);
+          }
         },
         (errorMessage) => {
           // Ignore scanning errors (they happen continuously when no QR code is visible)

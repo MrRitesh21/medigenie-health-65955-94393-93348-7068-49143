@@ -40,19 +40,41 @@ export default function HealthRecordShare() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const { data: patient } = await supabase
+      const { data: patient, error: patientError } = await supabase
         .from('patients')
         .select('id')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
-      if (!patient) return;
+      if (patientError) {
+        console.error('Error fetching patient:', patientError);
+        return;
+      }
 
-      const { data: tokens } = await supabase
+      if (!patient) {
+        toast({
+          title: "Profile Incomplete",
+          description: "Please complete your patient profile first",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      const { data: tokens, error: tokensError } = await supabase
         .from('health_record_tokens')
         .select('*')
         .eq('patient_id', patient.id)
         .order('created_at', { ascending: false });
+
+      if (tokensError) {
+        console.error('Error fetching tokens:', tokensError);
+        toast({
+          title: "Error",
+          description: "Failed to load tokens",
+          variant: "destructive"
+        });
+        return;
+      }
 
       setActiveTokens(tokens || []);
     } catch (error) {
@@ -65,6 +87,31 @@ export default function HealthRecordShare() {
   const generateQR = async () => {
     setIsGenerating(true);
     try {
+      // First verify patient profile exists
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      const { data: patient, error: patientError } = await supabase
+        .from('patients')
+        .select('id')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (patientError) {
+        console.error('Patient check error:', patientError);
+        throw new Error('Failed to verify patient profile');
+      }
+
+      if (!patient) {
+        toast({
+          title: "Profile Required",
+          description: "Please complete your patient profile first",
+          variant: "destructive"
+        });
+        navigate('/profile');
+        return;
+      }
+
       const { data, error } = await supabase.functions.invoke('generate-health-qr', {
         body: {
           expiryHours: parseInt(expiryHours),
@@ -72,7 +119,14 @@ export default function HealthRecordShare() {
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Edge function error:', error);
+        throw new Error(error.message || 'Failed to generate QR code');
+      }
+
+      if (!data) {
+        throw new Error('No data returned from server');
+      }
 
       setQrCode(data);
       await loadActiveTokens();
@@ -86,7 +140,7 @@ export default function HealthRecordShare() {
       console.error('Error generating QR:', error);
       toast({
         title: "Generation Failed",
-        description: error.message,
+        description: error.message || 'An unexpected error occurred',
         variant: "destructive"
       });
     } finally {
