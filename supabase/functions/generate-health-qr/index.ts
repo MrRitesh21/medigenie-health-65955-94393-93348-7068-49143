@@ -22,8 +22,9 @@ serve(async (req) => {
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     
-    // Create client with user's auth token
+    // Create client with user's auth token for authentication
     const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
     // Extract JWT from Authorization header and verify it
@@ -37,8 +38,11 @@ serve(async (req) => {
     
     console.log('Authenticated user:', user.id);
 
+    // Create service role client for database operations
+    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
+
     // Get patient ID
-    const { data: patient, error: patientError } = await supabase
+    const { data: patient, error: patientError } = await supabaseAdmin
       .from('patients')
       .select('id')
       .eq('user_id', user.id)
@@ -56,7 +60,7 @@ serve(async (req) => {
     expiresAt.setHours(expiresAt.getHours() + (expiryHours || 24));
 
     // Create token record
-    const { data: tokenData, error: tokenError } = await supabase
+    const { data: tokenData, error: tokenError } = await supabaseAdmin
       .from('health_record_tokens')
       .insert({
         patient_id: patient.id,
