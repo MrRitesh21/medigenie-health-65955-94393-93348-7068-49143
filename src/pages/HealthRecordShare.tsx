@@ -119,15 +119,21 @@ export default function HealthRecordShare() {
         }
       });
 
+      console.log('Edge function response:', { data, error });
+
       if (error) {
         console.error('Edge function error:', error);
-        throw new Error(error.message || 'Failed to generate QR code');
+        // Extract the actual error message from the edge function response
+        const errorMessage = error.message || 'Failed to generate QR code';
+        throw new Error(errorMessage);
       }
 
       if (!data) {
         throw new Error('No data returned from server');
       }
 
+      console.log('QR code generated successfully:', data);
+      
       setQrCode(data);
       await loadActiveTokens();
       
