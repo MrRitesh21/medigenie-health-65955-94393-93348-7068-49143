@@ -24,12 +24,11 @@ serve(async (req) => {
     const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
     
     // Create client with user's auth token
-    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-      global: { headers: { Authorization: authHeader } }
-    });
+    const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-    // Get current user (JWT is already verified by Edge Runtime)
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    // Extract JWT from Authorization header and verify it
+    const jwt = authHeader.replace('Bearer ', '');
+    const { data: { user }, error: userError } = await supabase.auth.getUser(jwt);
     
     if (userError || !user) {
       console.error('Auth error:', userError);
