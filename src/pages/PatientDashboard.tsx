@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
-import { Activity, Calendar, FileText, Brain, MessageCircle, TrendingUp, Pill, Newspaper, Stethoscope, QrCode } from "lucide-react";
+import { Activity, Calendar, FileText, Brain, MessageCircle, TrendingUp, Pill, Newspaper, Stethoscope, QrCode, ScanLine } from "lucide-react";
 import { MobileHeader } from "@/components/MobileHeader";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
 
@@ -47,6 +47,13 @@ export default function PatientDashboard() {
   }
 
   const quickActions = [
+    {
+      icon: ScanLine,
+      label: "Scan QR",
+      description: "Book via QR code",
+      path: "/scan-qr-booking",
+      gradient: "from-green-500 to-green-300"
+    },
     {
       icon: Stethoscope,
       label: "Smart Match",

@@ -16,7 +16,6 @@ serve(async (req) => {
     
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
-      console.error('Missing authorization header');
       throw new Error('Missing authorization header');
     }
 
@@ -24,80 +23,46 @@ serve(async (req) => {
     const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     
-    console.log('Environment check:', {
-      hasUrl: !!supabaseUrl,
-      hasAnonKey: !!supabaseAnonKey,
-      hasServiceKey: !!supabaseServiceKey
-    });
-    
-    // Create client with user's auth token for authentication
+    // Create client with user's auth token
     const supabase = createClient(supabaseUrl, supabaseAnonKey);
-
-    // Extract JWT from Authorization header and verify it
     const jwt = authHeader.replace('Bearer ', '');
     const { data: { user }, error: userError } = await supabase.auth.getUser(jwt);
     
     if (userError || !user) {
-      console.error('Auth error:', userError);
       throw new Error('Unauthorized - Invalid session');
     }
-    
-    console.log('Authenticated user:', user.id);
 
-    // Create service role client for database operations
+    // Create service role client
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
-    console.log('Querying patient for user_id:', user.id);
-    
-    // Get patient ID - first try to find existing patient
-    let { data: patient, error: patientError } = await supabaseAdmin
-      .from('patients')
+    // Get doctor ID
+    const { data: doctor, error: doctorError } = await supabaseAdmin
+      .from('doctors')
       .select('id')
       .eq('user_id', user.id)
       .maybeSingle();
 
-    console.log('Patient query result:', { patient, error: patientError });
-
-    if (patientError) {
-      console.error('Patient query error:', patientError);
-      throw new Error(`Database error: ${patientError.message}`);
+    if (doctorError) {
+      console.error('Doctor query error:', doctorError);
+      throw new Error(`Database error: ${doctorError.message}`);
     }
 
-    // If no patient profile exists, create one automatically
-    if (!patient) {
-      console.log('No patient found, creating patient profile for user_id:', user.id);
-      
-      const { data: newPatient, error: createError } = await supabaseAdmin
-        .from('patients')
-        .insert({
-          user_id: user.id
-        })
-        .select('id')
-        .single();
-
-      if (createError) {
-        console.error('Error creating patient profile:', createError);
-        throw new Error('Failed to create patient profile. Please complete your profile first.');
-      }
-
-      patient = newPatient;
-      console.log('Created new patient profile:', patient.id);
+    if (!doctor) {
+      throw new Error('Doctor profile not found');
     }
-    
-    console.log('Using patient:', patient.id);
 
     // Generate secure random token
     const token = crypto.randomUUID().replace(/-/g, '').substring(0, 16);
     
     // Calculate expiry
     const expiresAt = new Date();
-    expiresAt.setHours(expiresAt.getHours() + (expiryHours || 24));
+    expiresAt.setHours(expiresAt.getHours() + (expiryHours || 168)); // Default 7 days
 
     // Create token record
     const { data: tokenData, error: tokenError } = await supabaseAdmin
-      .from('health_record_tokens')
+      .from('doctor_booking_tokens')
       .insert({
-        patient_id: patient.id,
+        doctor_id: doctor.id,
         token,
         expires_at: expiresAt.toISOString(),
         max_uses: maxUses || null,
@@ -108,10 +73,11 @@ serve(async (req) => {
 
     if (tokenError) throw tokenError;
 
-    // Generate QR code URL (using a public QR API)
+    // Generate QR code URL
     const qrData = JSON.stringify({
       token,
-      type: 'health_record_access',
+      type: 'doctor_booking',
+      doctor_id: doctor.id,
       expires: expiresAt.toISOString()
     });
     
@@ -129,7 +95,7 @@ serve(async (req) => {
     );
 
   } catch (error: any) {
-    console.error('Error generating QR:', error);
+    console.error('Error generating doctor booking QR:', error);
     return new Response(
       JSON.stringify({ error: error.message || 'Failed to generate QR code' }),
       { 

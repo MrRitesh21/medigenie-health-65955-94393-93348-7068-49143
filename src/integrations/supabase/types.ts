@@ -78,6 +78,57 @@ export type Database = {
           },
         ]
       }
+      doctor_booking_tokens: {
+        Row: {
+          access_count: number | null
+          created_at: string | null
+          doctor_id: string
+          expires_at: string
+          id: string
+          is_active: boolean | null
+          max_uses: number | null
+          metadata: Json | null
+          token: string
+        }
+        Insert: {
+          access_count?: number | null
+          created_at?: string | null
+          doctor_id: string
+          expires_at: string
+          id?: string
+          is_active?: boolean | null
+          max_uses?: number | null
+          metadata?: Json | null
+          token: string
+        }
+        Update: {
+          access_count?: number | null
+          created_at?: string | null
+          doctor_id?: string
+          expires_at?: string
+          id?: string
+          is_active?: boolean | null
+          max_uses?: number | null
+          metadata?: Json | null
+          token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "doctor_booking_tokens_doctor_id_fkey"
+            columns: ["doctor_id"]
+            isOneToOne: false
+            referencedRelation: "doctors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "doctor_booking_tokens_doctor_id_fkey"
+            columns: ["doctor_id"]
+            isOneToOne: false
+            referencedRelation: "public_doctors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       doctor_ratings: {
         Row: {
           appointment_id: string

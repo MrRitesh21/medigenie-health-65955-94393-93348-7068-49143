@@ -30,6 +30,8 @@ import Profile from "./pages/Profile";
 import HealthFeed from "./pages/HealthFeed";
 import HealthRecordShare from "./pages/HealthRecordShare";
 import ScanHealthRecord from "./pages/ScanHealthRecord";
+import ScanQRBooking from "./pages/ScanQRBooking";
+import DoctorQRCode from "./pages/DoctorQRCode";
 
 const queryClient = new QueryClient();
 
@@ -66,6 +68,8 @@ const App = () => (
           <Route path="/health-feed" element={<HealthFeed />} />
           <Route path="/health-record-share" element={<HealthRecordShare />} />
           <Route path="/scan-health-record" element={<ScanHealthRecord />} />
+          <Route path="/scan-qr-booking" element={<ScanQRBooking />} />
+          <Route path="/doctor-qr-code" element={<DoctorQRCode />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
