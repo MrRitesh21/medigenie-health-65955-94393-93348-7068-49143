@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Html5QrcodeScanner } from "html5-qrcode";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
-import { QrCode, Calendar, Loader2, CheckCircle2 } from "lucide-react";
+import { QrCode, Calendar, Loader2, CheckCircle2, Camera } from "lucide-react";
 import { MobileHeader } from "@/components/MobileHeader";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
 import { useUserRole } from "@/hooks/useUserRole";
@@ -16,6 +16,7 @@ export default function ScanQRBooking() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { role } = useUserRole();
+  const scannerRef = useRef<Html5QrcodeScanner | null>(null);
   const [scanning, setScanning] = useState(true);
   const [doctorInfo, setDoctorInfo] = useState<any>(null);
   const [symptoms, setSymptoms] = useState("");
@@ -23,16 +24,18 @@ export default function ScanQRBooking() {
   const [appointmentType, setAppointmentType] = useState<"in-clinic" | "teleconsult">("in-clinic");
   const [booking, setBooking] = useState(false);
   const [patientId, setPatientId] = useState<string>("");
+  const [cameraError, setCameraError] = useState(false);
 
   useEffect(() => {
     checkAuth();
-    initScanner();
+    
+    const timer = setTimeout(() => {
+      initScanner();
+    }, 100);
 
     return () => {
-      const scanner = document.getElementById("qr-reader");
-      if (scanner) {
-        scanner.innerHTML = "";
-      }
+      clearTimeout(timer);
+      cleanupScanner();
     };
   }, []);
 
@@ -55,21 +58,69 @@ export default function ScanQRBooking() {
     }
   };
 
-  const initScanner = () => {
-    const scanner = new Html5QrcodeScanner(
-      "qr-reader",
-      { 
-        fps: 10, 
-        qrbox: { width: 250, height: 250 },
-        aspectRatio: 1.0
-      },
-      false
-    );
+  const cleanupScanner = async () => {
+    if (scannerRef.current) {
+      try {
+        await scannerRef.current.clear();
+        scannerRef.current = null;
+      } catch (error) {
+        console.log('Scanner cleanup error:', error);
+      }
+    }
+  };
 
-    scanner.render(onScanSuccess, onScanError);
+  const initScanner = async () => {
+    try {
+      setCameraError(false);
+      
+      // Cleanup any existing scanner first
+      await cleanupScanner();
+
+      // Small delay to ensure cleanup is complete
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      const scanner = new Html5QrcodeScanner(
+        "qr-reader",
+        { 
+          fps: 10, 
+          qrbox: { width: 250, height: 250 },
+          aspectRatio: 1.0,
+          rememberLastUsedCamera: true,
+          showTorchButtonIfSupported: true,
+          showZoomSliderIfSupported: true,
+          defaultZoomValueIfSupported: 2,
+          // Request camera explicitly
+          supportedScanTypes: [
+            // @ts-ignore
+            Html5QrcodeScanner.SCAN_TYPE_CAMERA
+          ]
+        },
+        false
+      );
+
+      scannerRef.current = scanner;
+      scanner.render(onScanSuccess, onScanError);
+      
+    } catch (error: any) {
+      console.error('Scanner initialization error:', error);
+      setCameraError(true);
+      toast({
+        title: "Camera Error",
+        description: "Failed to initialize camera. Please refresh the page.",
+        variant: "destructive"
+      });
+    }
   };
 
   const onScanSuccess = async (decodedText: string) => {
+    // Stop scanner after successful scan
+    if (scannerRef.current) {
+      try {
+        await scannerRef.current.clear();
+      } catch (error) {
+        console.log('Clear error:', error);
+      }
+    }
     try {
       const qrData = JSON.parse(decodedText);
       
@@ -119,17 +170,33 @@ export default function ScanQRBooking() {
       });
 
     } catch (error: any) {
+      console.error('QR Scan error:', error);
       toast({
         title: "Scan Failed",
         description: error.message || "Invalid QR code",
         variant: "destructive"
       });
+      
+      // Restart scanner on error
+      if (scannerRef.current) {
+        setTimeout(() => initScanner(), 1000);
+      }
     }
   };
 
   const onScanError = (error: any) => {
-    // Ignore scanning errors (camera permission, etc.)
-    console.log(error);
+    // Only log actual errors, not normal scanning attempts
+    if (error && !error.includes && typeof error === 'string') {
+      if (error.toLowerCase().includes('notallowed') || 
+          error.toLowerCase().includes('permission')) {
+        setCameraError(true);
+        toast({
+          title: "Camera Permission Denied",
+          description: "Please allow camera access in your browser settings and refresh the page",
+          variant: "destructive"
+        });
+      }
+    }
   };
 
   const handleBookAppointment = async () => {
@@ -199,8 +266,26 @@ export default function ScanQRBooking() {
                 Point your camera at the doctor's QR code to book an appointment
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              <div id="qr-reader" className="w-full"></div>
+            <CardContent className="space-y-4">
+              {cameraError ? (
+                <div className="text-center py-8 space-y-4">
+                  <Camera className="h-16 w-16 mx-auto text-muted-foreground opacity-50" />
+                  <div>
+                    <p className="font-semibold mb-2">Camera Access Required</p>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Please allow camera access in your browser settings
+                    </p>
+                  </div>
+                  <Button onClick={() => {
+                    setCameraError(false);
+                    initScanner();
+                  }}>
+                    Try Again
+                  </Button>
+                </div>
+              ) : (
+                <div id="qr-reader" className="w-full"></div>
+              )}
             </CardContent>
           </Card>
         ) : doctorInfo ? (
@@ -296,10 +381,12 @@ export default function ScanQRBooking() {
                 <div className="flex gap-2">
                   <Button
                     variant="outline"
-                    onClick={() => {
+                    onClick={async () => {
                       setScanning(true);
                       setDoctorInfo(null);
-                      setTimeout(() => initScanner(), 100);
+                      setCameraError(false);
+                      await cleanupScanner();
+                      setTimeout(() => initScanner(), 200);
                     }}
                     className="flex-1"
                   >
