@@ -29,14 +29,41 @@ serve(async (req) => {
       throw new Error('Unauthorized');
     }
 
-    const { data: doctor, error: doctorError } = await supabase
+    // Get or create doctor profile
+    let { data: doctor, error: doctorError } = await supabase
       .from('doctors')
       .select('id')
       .eq('user_id', user.id)
-      .single();
+      .maybeSingle();
 
-    if (doctorError || !doctor) {
-      throw new Error('Doctor profile not found');
+    if (doctorError) {
+      console.error('Error fetching doctor profile:', doctorError);
+      throw new Error('Failed to fetch doctor profile');
+    }
+
+    if (!doctor) {
+      console.log('Doctor profile not found, creating one...');
+      // Auto-create doctor profile
+      const { data: newDoctor, error: createError } = await supabase
+        .from('doctors')
+        .insert({
+          user_id: user.id,
+          specialization: 'General Practitioner',
+          qualification: 'MBBS',
+          clinic_name: 'Clinic',
+          clinic_address: 'Address not set',
+          license_number: 'TEMP-' + user.id.substring(0, 8)
+        })
+        .select('id')
+        .single();
+
+      if (createError) {
+        console.error('Error creating doctor profile:', createError);
+        throw new Error('Failed to create doctor profile');
+      }
+
+      doctor = newDoctor;
+      console.log('Doctor profile created successfully');
     }
 
     // Validate token and increment usage
@@ -46,7 +73,10 @@ serve(async (req) => {
         p_doctor_id: doctor.id
       });
 
-    if (validationError) throw validationError;
+    if (validationError) {
+      console.error('Token validation error:', validationError);
+      throw validationError;
+    }
 
     const validationResult = validation[0];
     if (!validationResult.is_valid) {
@@ -79,7 +109,10 @@ serve(async (req) => {
       .eq('id', patientId)
       .single();
 
-    if (patientInfoError) throw patientInfoError;
+    if (patientInfoError) {
+      console.error('Error fetching patient info:', patientInfoError);
+      throw patientInfoError;
+    }
 
     // Get appointments
     const { data: appointments, error: appointmentsError } = await supabase
