@@ -8,6 +8,8 @@ import { MobileBottomNav } from "@/components/MobileBottomNav";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
 
 interface Appointment {
   id: string;
@@ -20,9 +22,11 @@ interface Appointment {
 
 export default function Schedules() {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<any>(null);
+  const [doctorId, setDoctorId] = useState<string>("");
 
   useEffect(() => {
     const checkAuthAndFetch = async () => {
@@ -45,7 +49,18 @@ export default function Schedules() {
       }
 
       setProfile(profileData);
-      await fetchSchedules(session.user.id);
+      
+      // Get doctor ID
+      const { data: doctorData } = await supabase
+        .from("doctors")
+        .select("id")
+        .eq("user_id", session.user.id)
+        .single();
+      
+      if (doctorData) {
+        setDoctorId(doctorData.id);
+        await fetchSchedules(doctorData.id);
+      }
     };
 
     checkAuthAndFetch();
@@ -103,6 +118,42 @@ export default function Schedules() {
       minute: "2-digit",
       hour12: true,
     });
+  };
+
+  const handleStatusUpdate = async (appointmentId: string, newStatus: string) => {
+    try {
+      const { error } = await supabase
+        .from("appointments")
+        .update({ status: newStatus })
+        .eq("id", appointmentId);
+
+      if (error) throw error;
+
+      // Send notification to patient
+      await supabase.functions.invoke("send-appointment-notification", {
+        body: {
+          appointmentId,
+          action: "status_updated",
+          newStatus,
+        },
+      });
+
+      toast({
+        title: "Success",
+        description: `Appointment status updated to ${newStatus}`,
+      });
+
+      // Refetch appointments
+      if (doctorId) {
+        await fetchSchedules(doctorId);
+      }
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
   };
 
   const upcomingAppointments = appointments.filter(
@@ -171,9 +222,25 @@ export default function Schedules() {
                               </div>
                             </div>
                           </div>
-                          <Badge variant="outline" className={getStatusColor(appointment.status)}>
-                            {appointment.status}
-                          </Badge>
+                          <div className="flex flex-col gap-2">
+                            <Badge variant="outline" className={getStatusColor(appointment.status)}>
+                              {appointment.status}
+                            </Badge>
+                            <Select
+                              value={appointment.status}
+                              onValueChange={(value) => handleStatusUpdate(appointment.id, value)}
+                            >
+                              <SelectTrigger className="w-full">
+                                <SelectValue placeholder="Update status" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="scheduled">Scheduled</SelectItem>
+                                <SelectItem value="confirmed">Confirmed</SelectItem>
+                                <SelectItem value="completed">Completed</SelectItem>
+                                <SelectItem value="cancelled">Cancelled</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
                         </div>
                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
                           <Calendar className="w-4 h-4" />

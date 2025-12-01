@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar, Clock, MapPin, Plus, User, Star, Video, Building2 } from "lucide-react";
+import { Calendar, Clock, MapPin, Plus, User, Star, Video, Building2, X, Edit } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { MobileHeader } from "@/components/MobileHeader";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
@@ -13,6 +13,9 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import DoctorRating from "@/components/DoctorRating";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 export default function Appointments() {
   const navigate = useNavigate();
   const {
@@ -21,12 +24,40 @@ export default function Appointments() {
   const [appointments, setAppointments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [patientId, setPatientId] = useState<string>("");
+  const [rescheduleDialog, setRescheduleDialog] = useState<{ open: boolean; appointmentId: string; currentDate: string }>({
+    open: false,
+    appointmentId: "",
+    currentDate: "",
+  });
+  const [newDate, setNewDate] = useState("");
   const {
     role
   } = useUserRole();
+  
   useEffect(() => {
     checkAuth();
     fetchAppointments();
+    
+    // Subscribe to realtime updates
+    const channel = supabase
+      .channel('appointments-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'appointments',
+        },
+        (payload) => {
+          console.log('Appointment update:', payload);
+          fetchAppointments();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
   const checkAuth = async () => {
     const {
@@ -111,6 +142,82 @@ export default function Appointments() {
       hour: "2-digit",
       minute: "2-digit"
     });
+  };
+
+  const handleCancelAppointment = async (appointmentId: string) => {
+    try {
+      const { error } = await supabase
+        .from("appointments")
+        .update({ status: "cancelled" })
+        .eq("id", appointmentId);
+
+      if (error) throw error;
+
+      // Send notification to doctor
+      await supabase.functions.invoke("send-appointment-notification", {
+        body: {
+          appointmentId,
+          action: "cancelled",
+        },
+      });
+
+      toast({
+        title: "Success",
+        description: "Appointment cancelled successfully",
+      });
+      
+      fetchAppointments();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleRescheduleAppointment = async () => {
+    try {
+      if (!newDate) {
+        toast({
+          title: "Error",
+          description: "Please select a new date",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const { error } = await supabase
+        .from("appointments")
+        .update({ appointment_date: newDate })
+        .eq("id", rescheduleDialog.appointmentId);
+
+      if (error) throw error;
+
+      // Send notification to doctor
+      await supabase.functions.invoke("send-appointment-notification", {
+        body: {
+          appointmentId: rescheduleDialog.appointmentId,
+          action: "rescheduled",
+          newDate,
+        },
+      });
+
+      toast({
+        title: "Success",
+        description: "Appointment rescheduled successfully",
+      });
+      
+      setRescheduleDialog({ open: false, appointmentId: "", currentDate: "" });
+      setNewDate("");
+      fetchAppointments();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
   };
   return <div className="min-h-screen bg-background pb-20">
       <MobileHeader title="Appointments" />
@@ -207,6 +314,50 @@ export default function Appointments() {
                       <strong>Symptoms:</strong> {appointment.symptoms}
                     </p>}
                   
+                  {appointment.status === "scheduled" && (
+                    <div className="flex gap-2">
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="outline" size="sm" className="flex-1">
+                            <X className="w-4 h-4 mr-2" />
+                            Cancel
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Cancel Appointment</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Are you sure you want to cancel this appointment? This action cannot be undone and the doctor will be notified.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>No, keep it</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => handleCancelAppointment(appointment.id)}>
+                              Yes, cancel
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="flex-1"
+                        onClick={() => {
+                          setRescheduleDialog({
+                            open: true,
+                            appointmentId: appointment.id,
+                            currentDate: appointment.appointment_date,
+                          });
+                          setNewDate("");
+                        }}
+                      >
+                        <Edit className="w-4 h-4 mr-2" />
+                        Reschedule
+                      </Button>
+                    </div>
+                  )}
+
                   {appointment.status === "completed" && <Dialog>
                       <DialogTrigger asChild>
                         <Button variant="outline" className="w-full text-xs sm:text-sm">
@@ -232,5 +383,43 @@ export default function Appointments() {
       </div>
 
       <MobileBottomNav role={role} />
+
+      {/* Reschedule Dialog */}
+      <Dialog open={rescheduleDialog.open} onOpenChange={(open) => setRescheduleDialog({ ...rescheduleDialog, open })}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Reschedule Appointment</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="current-date">Current Date</Label>
+              <Input
+                id="current-date"
+                type="text"
+                value={rescheduleDialog.currentDate ? formatDate(rescheduleDialog.currentDate) + " " + formatTime(rescheduleDialog.currentDate) : ""}
+                disabled
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="new-date">New Date & Time</Label>
+              <Input
+                id="new-date"
+                type="datetime-local"
+                value={newDate}
+                onChange={(e) => setNewDate(e.target.value)}
+                min={new Date().toISOString().slice(0, 16)}
+              />
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => setRescheduleDialog({ open: false, appointmentId: "", currentDate: "" })} className="flex-1">
+              Cancel
+            </Button>
+            <Button onClick={handleRescheduleAppointment} className="flex-1">
+              Reschedule
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>;
 }
