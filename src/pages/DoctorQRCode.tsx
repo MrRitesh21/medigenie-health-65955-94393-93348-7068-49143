@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { Loader2, QrCode, Clock, Users, Copy, CheckCircle2, XCircle, Download } from "lucide-react";
@@ -18,6 +19,7 @@ export default function DoctorQRCode() {
   const { role } = useUserRole();
   const [isGenerating, setIsGenerating] = useState(false);
   const [expiryHours, setExpiryHours] = useState("168"); // Default 7 days
+  const [neverExpires, setNeverExpires] = useState(false);
   const [maxUses, setMaxUses] = useState("");
   const [qrCode, setQrCode] = useState<any>(null);
   const [activeTokens, setActiveTokens] = useState<any[]>([]);
@@ -105,8 +107,9 @@ export default function DoctorQRCode() {
 
       const { data, error } = await supabase.functions.invoke('generate-doctor-booking-qr', {
         body: {
-          expiryHours: parseInt(expiryHours),
-          maxUses: maxUses ? parseInt(maxUses) : null
+          expiryHours: neverExpires ? 876000 : parseInt(expiryHours), // 100 years if never expires
+          maxUses: maxUses ? parseInt(maxUses) : null,
+          neverExpires
         }
       });
 
@@ -222,21 +225,35 @@ export default function DoctorQRCode() {
             <CardDescription>Create a booking link for your patients</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div>
-              <Label htmlFor="expiry">Expiry Time (hours)</Label>
-              <Input
-                id="expiry"
-                type="number"
-                min="1"
-                max="8760"
-                value={expiryHours}
-                onChange={(e) => setExpiryHours(e.target.value)}
-                className="mt-2"
+            <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+              <div>
+                <Label htmlFor="neverExpires" className="font-medium">Never Expires</Label>
+                <p className="text-xs text-muted-foreground">QR code will always be active</p>
+              </div>
+              <Switch
+                id="neverExpires"
+                checked={neverExpires}
+                onCheckedChange={setNeverExpires}
               />
-              <p className="text-xs text-muted-foreground mt-1">
-                Default: 168 hours (7 days), Max: 1 year
-              </p>
             </div>
+
+            {!neverExpires && (
+              <div>
+                <Label htmlFor="expiry">Expiry Time (hours)</Label>
+                <Input
+                  id="expiry"
+                  type="number"
+                  min="1"
+                  max="8760"
+                  value={expiryHours}
+                  onChange={(e) => setExpiryHours(e.target.value)}
+                  className="mt-2"
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Default: 168 hours (7 days), Max: 1 year
+                </p>
+              </div>
+            )}
 
             <div>
               <Label htmlFor="maxUses">Maximum Uses (Optional)</Label>
