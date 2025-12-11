@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
-import { Loader2, QrCode, Clock, Users, Copy, CheckCircle2, XCircle, Download } from "lucide-react";
+import { Loader2, QrCode, Clock, Users, Copy, CheckCircle2, XCircle, Download, Printer } from "lucide-react";
 import { MobileHeader } from "@/components/MobileHeader";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
 import { useUserRole } from "@/hooks/useUserRole";
@@ -141,6 +141,39 @@ export default function DoctorQRCode() {
     link.href = qrCode.qrCodeUrl;
     link.download = `doctor-booking-qr-${qrCode.token}.png`;
     link.click();
+  };
+
+  const printQR = () => {
+    if (!qrCode) return;
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.write(`
+        <html>
+          <head>
+            <title>Doctor Booking QR Code</title>
+            <style>
+              body { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; margin: 0; font-family: system-ui, sans-serif; }
+              img { max-width: 300px; }
+              .info { margin-top: 20px; text-align: center; }
+              .token { font-family: monospace; background: #f5f5f5; padding: 8px 16px; border-radius: 4px; margin-top: 10px; }
+              @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
+            </style>
+          </head>
+          <body>
+            <h2>Scan to Book Appointment</h2>
+            <img src="${qrCode.qrCodeUrl}" alt="Booking QR Code" />
+            <div class="info">
+              <p class="token">${qrCode.token}</p>
+              ${neverExpires ? '<p>This QR code never expires</p>' : `<p>Expires: ${new Date(qrCode.expiresAt).toLocaleString()}</p>`}
+            </div>
+          </body>
+        </html>
+      `);
+      printWindow.document.close();
+      printWindow.onload = () => {
+        printWindow.print();
+      };
+    }
   };
 
   const copyToken = (token: string) => {
@@ -320,7 +353,7 @@ export default function DoctorQRCode() {
                 <div className="grid grid-cols-2 gap-2 text-sm">
                   <div className="flex items-center gap-2">
                     <Clock className="h-4 w-4 text-muted-foreground" />
-                    <span>Expires: {new Date(qrCode.expiresAt).toLocaleString()}</span>
+                    <span>{neverExpires ? 'Never expires' : `Expires: ${new Date(qrCode.expiresAt).toLocaleString()}`}</span>
                   </div>
                   {qrCode.maxUses && (
                     <div className="flex items-center gap-2">
@@ -330,10 +363,16 @@ export default function DoctorQRCode() {
                   )}
                 </div>
 
-                <Button onClick={downloadQR} variant="outline" className="w-full">
-                  <Download className="mr-2 h-4 w-4" />
-                  Download QR Code
-                </Button>
+                <div className="grid grid-cols-2 gap-2">
+                  <Button onClick={downloadQR} variant="outline">
+                    <Download className="mr-2 h-4 w-4" />
+                    Download
+                  </Button>
+                  <Button onClick={printQR} variant="outline">
+                    <Printer className="mr-2 h-4 w-4" />
+                    Print
+                  </Button>
+                </div>
               </div>
             </CardContent>
           </Card>
