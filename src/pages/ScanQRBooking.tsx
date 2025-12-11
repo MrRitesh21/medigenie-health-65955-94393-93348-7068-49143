@@ -76,8 +76,15 @@ export default function ScanQRBooking() {
       // Cleanup any existing scanner first
       await cleanupScanner();
 
+      // Check if the element exists
+      const readerElement = document.getElementById("qr-reader");
+      if (!readerElement) {
+        console.error('QR reader element not found');
+        return;
+      }
+
       // Small delay to ensure cleanup is complete
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise(resolve => setTimeout(resolve, 200));
 
       const scanner = new Html5QrcodeScanner(
         "qr-reader",
@@ -86,14 +93,7 @@ export default function ScanQRBooking() {
           qrbox: { width: 250, height: 250 },
           aspectRatio: 1.0,
           rememberLastUsedCamera: true,
-          showTorchButtonIfSupported: true,
-          showZoomSliderIfSupported: true,
-          defaultZoomValueIfSupported: 2,
-          // Request camera explicitly
-          supportedScanTypes: [
-            // @ts-ignore
-            Html5QrcodeScanner.SCAN_TYPE_CAMERA
-          ]
+          showTorchButtonIfSupported: true
         },
         false
       );
@@ -106,7 +106,7 @@ export default function ScanQRBooking() {
       setCameraError(true);
       toast({
         title: "Camera Error",
-        description: "Failed to initialize camera. Please refresh the page.",
+        description: "Failed to initialize camera. Please check permissions and try again.",
         variant: "destructive"
       });
     }
